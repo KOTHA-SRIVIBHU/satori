@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-satori-dark text-satori-text font-sans antialiased;
+}
+
+.text-shadow-glow {
+  text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+}
+
+.bg-satori-glow {
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.15);
+}
