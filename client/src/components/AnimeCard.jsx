@@ -1,24 +1,63 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Star, Calendar, Zap } from 'lucide-react';
 
-const AnimeCard = ({ anime }) => {
+const AnimeCard = ({ anime, index }) => {
   return (
-    <Link to={`/anime/${anime.id}`} className="group bg-satori-card rounded-xl overflow-hidden border border-white/5 hover:border-satori-accent/50 transition-all cursor-pointer block">
-      <div className="relative aspect-[3/4] overflow-hidden">
-        <img src={anime.image} alt={anime.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-yellow-500 text-xs font-bold flex items-center gap-1">
-          ★ {anime.averageScore || '??'}%
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+    >
+      <Link 
+        to={`/anime/${anime.id}`} 
+        className="group relative flex flex-col bg-white/[0.03] rounded-2xl overflow-hidden border border-white/[0.08] hover:border-satori-accent/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(139,92,246,0.1)] h-full"
+      >
+        <div className="relative aspect-[2/3] overflow-hidden">
+          <img 
+            src={anime.image} 
+            alt={anime.title} 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-transparent to-transparent opacity-80" />
+          
+          {/* Top Info Tags */}
+          <div className="absolute top-3 left-3 flex flex-col gap-2">
+            <div className="bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-yellow-500 text-[10px] font-black flex items-center gap-1 border border-white/10">
+              <Star size={10} fill="currentColor" /> {anime.averageScore || '??'}%
+            </div>
+          </div>
+
+          <div className="absolute bottom-3 left-3 right-3">
+             <div className="flex flex-wrap gap-1.5">
+              {anime.genres?.slice(0, 2).map(g => (
+                <span key={g} className="text-[9px] font-bold uppercase tracking-wider bg-satori-accent/20 backdrop-blur-md border border-satori-accent/30 px-2 py-0.5 rounded-md text-satori-accent">{g}</span>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="p-4">
-        <h3 className="font-bold text-sm line-clamp-1 group-hover:text-satori-accent transition-colors mb-2">{anime.title}</h3>
-        <div className="flex justify-between items-center text-[10px] uppercase tracking-wider text-satori-muted">
-          <span>{anime.year || '????'}</span>
-          <span className={`px-2 py-0.5 rounded ${anime.status === 'FINISHED' ? 'bg-green-500/10 text-green-400' : 'bg-blue-500/10 text-blue-400'}`}>
-            {anime.status}
-          </span>
+
+        <div className="p-4 flex-grow flex flex-col justify-between bg-gradient-to-b from-transparent to-white/[0.02]">
+          <h3 className="font-bold text-sm leading-tight line-clamp-2 group-hover:text-satori-accent transition-colors mb-3">
+            {anime.title}
+          </h3>
+          
+          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-satori-muted border-t border-white/[0.05] pt-3">
+            <span className="flex items-center gap-1.5">
+              <Calendar size={12} className="text-satori-accent" />
+              {anime.year || '????'}
+            </span>
+            <span className={`px-2 py-0.5 rounded-md border ${
+              anime.status === 'FINISHED' 
+                ? 'bg-green-500/5 border-green-500/20 text-green-400' 
+                : 'bg-satori-accent/5 border-satori-accent/20 text-satori-accent'
+            }`}>
+              {anime.status?.replace('_', ' ')}
+            </span>
+          </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </motion.div>
   );
 };
 
