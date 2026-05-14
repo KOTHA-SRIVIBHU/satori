@@ -13,6 +13,9 @@ const Details = () => {
   const [customLists, setCustomLists] = useState([]);
   const [showListModal, setShowListModal] = useState(false);
   const [syncStatus, setSyncStatus] = useState({}); // { listId: 'idle' | 'loading' | 'success' }
+  const [userStatus, setUserStatus] = useState("NOT_IN_LIST");
+
+  const statuses = ['CURRENT', 'PLANNING', 'COMPLETED', 'DROPPED', 'PAUSED', 'REPEATING'];
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -20,6 +23,13 @@ const Details = () => {
       try {
         const { data } = await api.get(`/anime/${id}`);
         setAnime(data.data);
+        
+        // Check user status for this anime
+        if (user) {
+          const userListRes = await api.get('/user/list');
+          const match = userListRes.data.data.find(item => item.animeId === Number(id));
+          if (match) setUserStatus(match.status);
+        }
       } catch (err) {
         console.error("Failed to fetch details", err);
       } finally {
@@ -27,7 +37,18 @@ const Details = () => {
       }
     };
     fetchDetails();
-  }, [id]);
+  }, [id, user]);
+
+  const updateStatus = async (newStatus) => {
+    setUserStatus('updating...');
+    try {
+      await api.post('/user/status-update', { animeId: id, status: newStatus });
+      setUserStatus(newStatus);
+    } catch (err) {
+      console.error("Failed to update status", err);
+      setUserStatus('error');
+    }
+  };
 
   useEffect(() => {
     if (user && showListModal) {
@@ -102,13 +123,42 @@ const Details = () => {
           </Link>
 
           {user && (
-            <button 
-              onClick={() => setShowListModal(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-satori-accent text-white rounded-xl font-bold hover:bg-purple-600 transition-all shadow-xl shadow-satori-accent/20"
-            >
-              <Plus size={18} />
-              <span>Add to Custom List</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 overflow-hidden">
+                {['CURRENT', 'PLANNING', 'COMPLETED'].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => updateStatus(s)}
+                    disabled={userStatus === 'updating...'}
+                    className={`px-4 py-2 rounded-lg text-[10px] font-black tracking-widest transition-all ${
+                      userStatus === s 
+                        ? 'bg-satori-accent text-white shadow-lg shadow-satori-accent/20' 
+                        : 'text-satori-muted hover:text-white'
+                    }`}
+                  >
+                    {s === 'CURRENT' ? 'WATCHING' : s}
+                  </button>
+                ))}
+                <select 
+                  onChange={(e) => updateStatus(e.target.value)}
+                  value={statuses.includes(userStatus) && !['CURRENT', 'PLANNING', 'COMPLETED'].includes(userStatus) ? userStatus : ""}
+                  className="bg-transparent text-satori-muted text-[10px] font-black tracking-widest px-2 focus:outline-none appearance-none cursor-pointer"
+                >
+                  <option value="" disabled className="bg-[#0a0a0c]">MORE</option>
+                  <option value="PAUSED" className="bg-[#0a0a0c]">PAUSED</option>
+                  <option value="DROPPED" className="bg-[#0a0a0c]">DROPPED</option>
+                  <option value="REPEATING" className="bg-[#0a0a0c]">REPEATING</option>
+                </select>
+              </div>
+
+              <button 
+                onClick={() => setShowListModal(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold hover:border-satori-accent transition-all shadow-xl"
+              >
+                <Plus size={18} />
+                <span>Collections</span>
+              </button>
+            </div>
           )}
         </div>
 
@@ -263,7 +313,7 @@ const Details = () => {
                 {customLists.length === 0 && (
                   <div className="text-center py-10">
                     <p className="text-satori-muted italic">No custom lists found.</p>
-                    <Link to="/list" className="text-satori-accent text-sm font-bold mt-2 block hover:underline">Create one in Intelligence Center</Link>
+                    <Link to="/list?tab=custom" className="text-satori-accent text-sm font-bold mt-2 block hover:underline">Create one in Intelligence Center</Link>
                   </div>
                 )}
               </div>

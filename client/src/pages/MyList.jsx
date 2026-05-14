@@ -2,15 +2,19 @@ import React, { useEffect, useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const MyList = () => {
   const { user } = useContext(AuthContext);
+  const location = useLocation();
   const [list, setList] = useState([]);
   const [customLists, setCustomLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
-  const [activeTab, setActiveTab] = useState('SYNC'); // SYNC or CUSTOM
+  
+  // Set initial tab based on URL query (?tab=custom)
+  const initialTab = new URLSearchParams(location.search).get('tab') === 'custom' ? 'CUSTOM' : 'SYNC';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newList, setNewList] = useState({ name: '', description: '', isPublic: true });
 

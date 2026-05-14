@@ -207,3 +207,38 @@ exports.getUserList = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.updateAnimeStatus = async (req, res) => {
+  const { animeId, status, score } = req.body;
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    const animeIndex = user.animeList.findIndex(item => item.animeId === Number(animeId));
+
+    if (animeIndex > -1) {
+      // Update existing entry
+      if (status) user.animeList[animeIndex].status = status;
+      if (score !== undefined) user.animeList[animeIndex].score = score;
+    } else {
+      // Add new entry
+      user.animeList.push({
+        animeId: Number(animeId),
+        status: status || "PLANNING",
+        score: score || 0
+      });
+      
+      // Trigger cache fetch if missing
+      const cache = await mongoose.model("AnimeCache").findById(animeId);
+      if (!cache) {
+        const { fetchAndCacheAnime } = require("../services/animeService");
+        await fetchAndCacheAnime(animeId);
+      }
+    }
+
+    await user.save();
+    res.json({ success: true, message: "List updated successfully", data: user.animeList });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
