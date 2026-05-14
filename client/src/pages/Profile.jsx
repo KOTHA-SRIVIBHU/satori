@@ -1,8 +1,9 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import api from '../services/api';
 import { RefreshCw, CheckCircle2, AlertCircle, User as UserIcon } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Import axios for offline AniList query
 
 const Profile = () => {
   const { user } = useContext(AuthContext);
@@ -11,19 +12,41 @@ const Profile = () => {
   const [status, setStatus] = useState("idle"); // idle, loading, success, error
   const [message, setMessage] = useState("");
 
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-white p-8">
-        <p className="text-xl mb-6">Please login to access your profile.</p>
-        <button 
-          onClick={() => navigate('/login')}
-          className="px-6 py-3 bg-satori-accent text-white rounded-xl font-bold hover:bg-purple-600 transition-all"
-        >
-          Go to Login
-        </button>
-      </div>
+  useEffect(() => {
+    if (user && user.anilistId) {
+      setAnilistUser(user.anilistId);
+    } else if (!user) {
+      const localSync = localStorage.getItem('localAniListId');
+      if (localSync) setAnilistUser(localSync);
+    }
+  }, [user]);
+
+  const handleOfflineSync = async (username) => {
+    const query = `
+      query ($userName: String) {
+        MediaListCollection(userName: $userName, type: ANIME) {
+          lists { 
+            entries { 
+              mediaId status score(format: POINT_10) 
+              media { title { english romaji } coverImage { large } }
+            } 
+          }
+        }
+      }
+    `;
+    const response = await axios.post("https://graphql.anilist.co", { query, variables: { userName: username } });
+    const allEntries = response.data.data.MediaListCollection.lists.flatMap(
+      (list) => list.entries.map(entry => ({
+        animeId: entry.mediaId, 
+        status: entry.status, 
+        score: entry.score,
+        anime: entry.media // Store the full media object locally
+      }))
     );
-  }
+    localStorage.setItem('localSyncList', JSON.stringify(allEntries));
+    localStorage.setItem('localAniListId', username);
+    return allEntries.length;
+  };
 
   const handleSync = async (e) => {
     e.preventDefault();
@@ -31,12 +54,18 @@ const Profile = () => {
 
     setStatus("loading");
     try {
-      const { data } = await api.post('/user/sync-anilist', {
-        anilistUsername: anilistUser
-      });
-
+      if (user) {
+        // Online Sync
+        const { data } = await api.post('/user/sync-anilist', {
+          anilistUsername: anilistUser
+        });
+        setMessage(`Successfully synced ${data.count} anime from your AniList to your online profile!`);
+      } else {
+        // Offline Sync
+        const count = await handleOfflineSync(anilistUser);
+        setMessage(`Successfully synced ${count} anime from your AniList locally! Register to save them online.`);
+      }
       setStatus("success");
-      setMessage(`Successfully synced ${data.count} anime from your AniList!`);
     } catch (err) {
       setStatus("error");
       setMessage(err.response?.data?.message || "Sync failed. Make sure your AniList profile is public.");
@@ -49,8 +78,19 @@ const Profile = () => {
         <div className="inline-block p-4 bg-satori-accent/10 rounded-full text-satori-accent mb-6">
           <UserIcon size={48} />
         </div>
-        <h1 className="text-4xl font-bold mb-2">{user.username}</h1>
-        <p className="text-satori-muted mb-10">{user.email}</p>
+        
+        {user ? (
+          <>
+            <h1 className="text-4xl font-bold mb-2">{user.username}</h1>
+            <p className="text-satori-muted mb-10">{user.email}</p>
+          </>
+        ) : (
+          <>
+            <h1 className="text-4xl font-bold mb-2 text-white">Local Explorer</h1>
+            <p className="text-satori-muted mb-10">You are currently offline. Your sync data will be saved to this browser.</p>
+            <button onClick={() => navigate('/register')} className="mb-8 px-6 py-2 bg-satori-accent/20 text-satori-accent font-bold rounded-lg hover:bg-satori-accent hover:text-white transition-all">Create an account to save data online</button>
+          </>
+        )}
 
         <div className="max-w-md mx-auto bg-satori-dark/50 p-8 rounded-2xl border border-white/5 text-left">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">

@@ -18,4 +18,20 @@ api.interceptors.request.use(
   }
 );
 
+// Add a response interceptor to handle expired or invalid sessions
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // If the server says the user is not found or token failed, clear local storage
+      localStorage.removeItem('userInfo');
+      // Force a page reload to reset the AuthContext and redirect to login
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

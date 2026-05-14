@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const { fetchAndCacheAnime } = require("../services/animeService");
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
@@ -106,7 +107,7 @@ exports.syncAniList = async (req, res) => {
         animeList: allEntries, 
         anilistId: anilistUsername,
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     res.status(200).json({
@@ -129,18 +130,79 @@ exports.getUserList = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Map through the user's animeList and fetch details from AnimeCache
-    const populatedList = await Promise.all(
-      user.animeList.map(async (item) => {
-        const anime = await mongoose.model("AnimeCache").findById(item.animeId);
-        return {
-          ...item._doc,
-          anime: anime || { title: { romaji: "Unknown Anime" }, coverImage: "" }
-        };
-      })
-    );
+    // 1. Fetch ALL cached anime in ONE database query
+    const animeIds = user.animeList.map(item => item.animeId);
+    const cachedAnime = await mongoose.model("AnimeCache").find({ _id: { $in: animeIds } });
+    
+    // Create a lookup map for instant access
+    const cacheMap = new Map(cachedAnime.map(a => [a._id, a]));
 
-    res.json({ success: true, data: populatedList });
+    const missingIds = [];
+    const populatedList = [];
+
+    for (const item of user.animeList) {
+      const anime = cacheMap.get(item.animeId);
+      if (anime) {
+        populatedList.push({ ...item._doc, anime });
+      } else {
+        missingIds.push(item.animeId);
+        populatedList.push({ ...item._doc, anime: null }); // placeholder
+      }
+    }
+
+    // 2. Batch fetch missing IDs (up to 50 at a time to respect limits)
+    if (missingIds.length > 0) {
+      console.log(`🚀 Batch fetching ${missingIds.length} missing anime from AniList...`);
+      try {
+        const chunks = [];
+        for (let i = 0; i < missingIds.length; i += 50) {
+          chunks.push(missingIds.slice(i, i + 50));
+        }
+
+        for (const chunk of chunks) {
+          const query = `
+            query ($ids: [Int]) {
+              Page {
+                media(id_in: $ids, type: ANIME) {
+                  id title { english romaji } coverImage { large }
+                  format status genres averageScore description startDate { year month day }
+                }
+              }
+            }
+          `;
+          const response = await axios.post("https://graphql.anilist.co", { query, variables: { ids: chunk } });
+          const fetchedMedia = response.data.data.Page.media;
+
+          const cacheUpdates = fetchedMedia.map(async (anime) => {
+            const newCache = await mongoose.model("AnimeCache").findOneAndUpdate(
+              { _id: anime.id },
+              {
+                title: anime.title, coverImage: anime.coverImage.large, format: anime.format,
+                status: anime.status, genres: anime.genres, averageScore: anime.averageScore,
+                description: anime.description, startDate: anime.startDate
+              },
+              { upsert: true, returnDocument: 'after' }
+            );
+
+            // Update placeholder in our response list
+            const target = populatedList.find(p => p.animeId === anime.id);
+            if (target) target.anime = newCache;
+          });
+          
+          await Promise.all(cacheUpdates);
+        }
+      } catch (err) {
+        console.warn("Batch fetch for missing anime failed:", err.message);
+      }
+    }
+
+    // Provide default for any still missing (due to errors)
+    const finalList = populatedList.map(item => ({
+      ...item,
+      anime: item.anime || { title: { romaji: "Unknown Anime" }, coverImage: "" }
+    }));
+
+    res.json({ success: true, data: finalList });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

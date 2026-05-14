@@ -47,21 +47,47 @@ exports.searchAnime = async (req, res) => {
         }
       }
     `;
-    const response = await axios.post("https://graphql.anilist.co", {
-      query,
-      variables: { search: q },
-    });
-    
-    const apiResults = response.data.data.Page.media.map(a => ({
-      id: a.id,
-      title: a.title.english || a.title.romaji,
-      description: a.description,
-      image: a.coverImage.large,
-      year: a.startDate?.year,
-      status: a.status,
-      averageScore: a.averageScore,
-      source: "api"
-    }));
+
+    let apiResults = [];
+    try {
+      const response = await axios.post("https://graphql.anilist.co", {
+        query,
+        variables: { search: q },
+      });
+      
+      apiResults = response.data.data.Page.media.map(a => ({
+        id: a.id,
+        title: a.title.english || a.title.romaji,
+        description: a.description,
+        image: a.coverImage.large,
+        year: a.startDate?.year,
+        status: a.status,
+        averageScore: a.averageScore,
+        source: "api"
+      }));
+
+      // Cache the new API results (asynchronously)
+      const animeList = response.data.data.Page.media;
+      Promise.all(animeList.map(async (anime) => {
+        await AnimeCache.findOneAndUpdate(
+          { _id: anime.id },
+          {
+            title: anime.title,
+            coverImage: anime.coverImage.large,
+            format: anime.format,
+            status: anime.status,
+            genres: anime.genres,
+            averageScore: anime.averageScore,
+            description: anime.description,
+            startDate: anime.startDate
+          },
+          { upsert: true, returnDocument: 'after' }
+        );
+      })).catch(err => console.error("Cache update failed", err));
+
+    } catch (apiError) {
+      console.warn("AniList API search failed or rate-limited. Serving from cache only.", apiError.message);
+    }
 
     // 3. Merge and Deduplicate Results
     // We prefer API results but fill in with fuzzy matches from cache
@@ -71,25 +97,6 @@ exports.searchAnime = async (req, res) => {
         combined.push(fuzzy);
       }
     });
-
-    // 4. Cache the new API results (asynchronously)
-    const animeList = response.data.data.Page.media;
-    Promise.all(animeList.map(async (anime) => {
-      await AnimeCache.findOneAndUpdate(
-        { _id: anime.id },
-        {
-          title: anime.title,
-          coverImage: anime.coverImage.large,
-          format: anime.format,
-          status: anime.status,
-          genres: anime.genres,
-          averageScore: anime.averageScore,
-          description: anime.description,
-          startDate: anime.startDate
-        },
-        { upsert: true }
-      );
-    })).catch(err => console.error("Cache update failed", err));
 
     res.status(200).json({ success: true, data: combined.slice(0, 10) });
 

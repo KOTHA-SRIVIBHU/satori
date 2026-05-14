@@ -6,6 +6,7 @@ import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MyList from './pages/MyList';
+import ListView from './pages/ListView';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/list" element={<MyList />} />
+            <Route path="/lists/:id" element={<ListView />} />
             {/* We will add more routes here soon */}
           </Routes>
         </main>

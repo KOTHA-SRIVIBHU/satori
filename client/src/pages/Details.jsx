@@ -1,13 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
-import { ArrowLeft, Star, Users, Tv, Zap, Calendar, Info, Layout } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowLeft, Star, Users, Tv, Zap, Calendar, Info, Layout, Plus, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AuthContext } from '../context/AuthContext';
 
 const Details = () => {
   const { id } = useParams();
+  const { user } = useContext(AuthContext);
   const [anime, setAnime] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [customLists, setCustomLists] = useState([]);
+  const [showListModal, setShowListModal] = useState(false);
+  const [syncStatus, setSyncStatus] = useState({}); // { listId: 'idle' | 'loading' | 'success' }
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -23,6 +28,34 @@ const Details = () => {
     };
     fetchDetails();
   }, [id]);
+
+  useEffect(() => {
+    if (user && showListModal) {
+      const fetchLists = async () => {
+        try {
+          const { data } = await api.get('/lists/my');
+          setCustomLists(data.data);
+        } catch (err) {
+          console.error("Failed to fetch custom lists", err);
+        }
+      };
+      fetchLists();
+    }
+  }, [user, showListModal]);
+
+  const addToList = async (listId) => {
+    setSyncStatus({ ...syncStatus, [listId]: 'loading' });
+    try {
+      await api.post('/lists/add', { listId, animeId: Number(id) });
+      setSyncStatus({ ...syncStatus, [listId]: 'success' });
+      setTimeout(() => {
+        setSyncStatus(prev => ({ ...prev, [listId]: 'idle' }));
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to add to list", err);
+      setSyncStatus({ ...syncStatus, [listId]: 'idle' });
+    }
+  };
 
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6">
@@ -60,12 +93,24 @@ const Details = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-8 pt-12">
-        <Link to="/" className="inline-flex items-center gap-2 text-satori-muted hover:text-white mb-12 transition-all group">
-          <div className="p-2 rounded-lg bg-white/5 border border-white/5 group-hover:border-satori-accent/30">
-            <ArrowLeft size={18} />
-          </div>
-          <span className="text-sm font-bold uppercase tracking-widest">Back to Map</span>
-        </Link>
+        <div className="flex justify-between items-start mb-12">
+          <Link to="/" className="inline-flex items-center gap-2 text-satori-muted hover:text-white transition-all group">
+            <div className="p-2 rounded-lg bg-white/5 border border-white/5 group-hover:border-satori-accent/30">
+              <ArrowLeft size={18} />
+            </div>
+            <span className="text-sm font-bold uppercase tracking-widest">Back to Map</span>
+          </Link>
+
+          {user && (
+            <button 
+              onClick={() => setShowListModal(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-satori-accent text-white rounded-xl font-bold hover:bg-purple-600 transition-all shadow-xl shadow-satori-accent/20"
+            >
+              <Plus size={18} />
+              <span>Add to Custom List</span>
+            </button>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
           {/* Left: Poster & Tags */}
@@ -140,10 +185,6 @@ const Details = () => {
                         <p className="text-[10px] font-bold text-satori-muted uppercase mb-1">Episodes / Duration</p>
                         <p className="font-bold text-lg">{anime.episodes || '?'} ep • {anime.duration || '?'}m</p>
                       </div>
-                      <div>
-                        <p className="text-[10px] font-bold text-satori-muted uppercase mb-1">Original Creator</p>
-                        <p className="font-bold text-lg">{anime.staff?.find(s => s.role.includes('Original Creator'))?.name || 'Unknown'}</p>
-                      </div>
                     </div>
                  </div>
 
@@ -176,6 +217,67 @@ const Details = () => {
           </div>
         </div>
       </div>
+
+      {/* List Modal */}
+      <AnimatePresence>
+        {showListModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowListModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-lg bg-[#0a0a0c] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl"
+            >
+              <h2 className="text-3xl font-black text-white mb-2 tracking-tighter uppercase">Add to Custom List</h2>
+              <p className="text-satori-muted mb-8 text-sm">Select a list to store this intelligence entry.</p>
+              
+              <div className="space-y-3 max-h-[40vh] overflow-y-auto mb-8 pr-2">
+                {customLists.map(list => (
+                  <button
+                    key={list._id}
+                    onClick={() => addToList(list._id)}
+                    disabled={syncStatus[list._id] === 'loading' || syncStatus[list._id] === 'success'}
+                    className="w-full flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-2xl hover:border-satori-accent/50 transition-all group"
+                  >
+                    <div className="text-left">
+                      <p className="font-bold text-white group-hover:text-satori-accent transition-colors">{list.name}</p>
+                      <p className="text-[10px] text-satori-muted uppercase tracking-widest mt-1">{list.animeIds.length} ENTRIES</p>
+                    </div>
+                    {syncStatus[list._id] === 'success' ? (
+                      <CheckCircle2 className="text-green-400" size={20} />
+                    ) : syncStatus[list._id] === 'loading' ? (
+                      <div className="w-5 h-5 border-2 border-satori-accent border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Plus className="text-white/20 group-hover:text-satori-accent" size={20} />
+                    )}
+                  </button>
+                ))}
+                
+                {customLists.length === 0 && (
+                  <div className="text-center py-10">
+                    <p className="text-satori-muted italic">No custom lists found.</p>
+                    <Link to="/list" className="text-satori-accent text-sm font-bold mt-2 block hover:underline">Create one in Intelligence Center</Link>
+                  </div>
+                )}
+              </div>
+
+              <button 
+                onClick={() => setShowListModal(false)}
+                className="w-full py-4 text-sm font-black text-satori-muted uppercase tracking-[0.2em] hover:text-white transition-colors"
+              >
+                Close Portal
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
