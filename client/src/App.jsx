@@ -3,6 +3,9 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Details from './pages/Details';
 import Profile from './pages/Profile';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import MyList from './pages/MyList';
 
 function App() {
   return (
@@ -14,6 +17,9 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/anime/:id" element={<Details />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/list" element={<MyList />} />
             {/* We will add more routes here soon */}
           </Routes>
         </main>

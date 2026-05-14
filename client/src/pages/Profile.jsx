@@ -1,11 +1,29 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import api from '../services/api';
 import { RefreshCw, CheckCircle2, AlertCircle, User as UserIcon } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [anilistUser, setAnilistUser] = useState("");
   const [status, setStatus] = useState("idle"); // idle, loading, success, error
   const [message, setMessage] = useState("");
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-white p-8">
+        <p className="text-xl mb-6">Please login to access your profile.</p>
+        <button 
+          onClick={() => navigate('/login')}
+          className="px-6 py-3 bg-satori-accent text-white rounded-xl font-bold hover:bg-purple-600 transition-all"
+        >
+          Go to Login
+        </button>
+      </div>
+    );
+  }
 
   const handleSync = async (e) => {
     e.preventDefault();
@@ -13,10 +31,7 @@ const Profile = () => {
 
     setStatus("loading");
     try {
-      // NOTE: For now, we use a hardcoded 'Vibhu' as the app user
-      // until we build the full JWT Login system in Phase 2.
       const { data } = await api.post('/user/sync-anilist', {
-        username: "Vibhu",
         anilistUsername: anilistUser
       });
 
@@ -24,7 +39,7 @@ const Profile = () => {
       setMessage(`Successfully synced ${data.count} anime from your AniList!`);
     } catch (err) {
       setStatus("error");
-      setMessage("Sync failed. Make sure your AniList profile is public.");
+      setMessage(err.response?.data?.message || "Sync failed. Make sure your AniList profile is public.");
     }
   };
 
@@ -34,8 +49,8 @@ const Profile = () => {
         <div className="inline-block p-4 bg-satori-accent/10 rounded-full text-satori-accent mb-6">
           <UserIcon size={48} />
         </div>
-        <h1 className="text-4xl font-bold mb-2">User Profile</h1>
-        <p className="text-satori-muted mb-10">Manage your synced data and intelligence profile.</p>
+        <h1 className="text-4xl font-bold mb-2">{user.username}</h1>
+        <p className="text-satori-muted mb-10">{user.email}</p>
 
         <div className="max-w-md mx-auto bg-satori-dark/50 p-8 rounded-2xl border border-white/5 text-left">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
@@ -49,7 +64,7 @@ const Profile = () => {
             <input
               type="text"
               placeholder="AniList Username"
-              className="w-full bg-satori-card border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-satori-accent transition-all"
+              className="w-full bg-satori-card border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-satori-accent transition-all text-white"
               value={anilistUser}
               onChange={(e) => setAnilistUser(e.target.value)}
             />

@@ -1,13 +1,16 @@
-import { Search, User, BarChart3, Zap } from 'lucide-react';
+import { Search, User, BarChart3, Zap, LogOut, LogIn } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
 const Navbar = () => {
   const location = useLocation();
+  const { user, logout } = useContext(AuthContext);
 
   const navLinks = [
     { path: '/', icon: Search, label: 'Explorer' },
-    { path: '/analytics', icon: BarChart3, label: 'Analytics' },
+    { path: '/list', icon: BarChart3, label: 'My List' }, // Changed Analytics to My List for now
     { path: '/dna', icon: Zap, label: 'Anime DNA' },
   ];
 
@@ -51,12 +54,31 @@ const Navbar = () => {
           );
         })}
         <div className="w-px h-4 bg-white/10 mx-4" />
-        <Link 
-          to="/profile" 
-          className="p-2.5 bg-satori-accent/10 rounded-xl text-satori-accent hover:bg-satori-accent hover:text-white transition-all shadow-lg hover:shadow-satori-accent/20"
-        >
-          <User size={18} />
-        </Link>
+        
+        {user ? (
+          <div className="flex items-center gap-3">
+            <Link 
+              to="/profile" 
+              className="p-2.5 bg-satori-accent/10 rounded-xl text-satori-accent hover:bg-satori-accent hover:text-white transition-all shadow-lg hover:shadow-satori-accent/20"
+            >
+              <User size={18} />
+            </Link>
+            <button 
+              onClick={logout}
+              className="p-2.5 bg-red-500/10 rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
+        ) : (
+          <Link 
+            to="/login" 
+            className="flex items-center gap-2 px-4 py-2 bg-satori-accent text-white rounded-lg font-medium hover:bg-purple-600 transition-all shadow-lg shadow-satori-accent/20"
+          >
+            <LogIn size={18} />
+            <span>Login</span>
+          </Link>
+        )}
       </div>
     </motion.nav>
   );
