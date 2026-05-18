@@ -8,16 +8,23 @@ const PublicProfile = () => {
   const { username } = useParams();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState('ANI-SYNC');
   const [filter, setFilter] = useState('ALL');
 
   useEffect(() => {
     const fetchProfile = async () => {
+      setLoading(true);
       try {
         const { data } = await api.get(`/user/public/${username}`);
-        setProfileData(data.data);
+        if (data.success) {
+          setProfileData(data.data);
+        } else {
+          setError(data.message || "Failed to load profile.");
+        }
       } catch (err) {
         console.error("Failed to fetch public profile", err);
+        setError(err.response?.data?.message || "Profile intelligence entry not found.");
       } finally {
         setLoading(false);
       }
@@ -26,7 +33,14 @@ const PublicProfile = () => {
   }, [username]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-white font-black tracking-[0.2em] animate-pulse">DECODING INTELLIGENCE...</div>;
-  if (!profileData) return <div className="min-h-screen flex items-center justify-center text-white">Intelligence Profile Not Found.</div>;
+  
+  if (error || !profileData) return (
+    <div className="min-h-screen flex flex-col items-center justify-center text-white p-8">
+      <h1 className="text-4xl font-black mb-4 tracking-tighter">SIGNAL LOST</h1>
+      <p className="text-satori-muted text-lg mb-8">{error || "Intelligence Profile Not Found."}</p>
+      <Link to="/" className="px-6 py-3 bg-satori-accent text-white rounded-xl font-bold hover:bg-purple-600 transition-all uppercase tracking-widest text-xs">Return to Explorer</Link>
+    </div>
+  );
 
   const statuses = ['ALL', 'CURRENT', 'PLANNING', 'COMPLETED', 'DROPPED', 'PAUSED', 'REPEATING'];
   const filteredMainList = filter === 'ALL' 
@@ -111,11 +125,17 @@ const PublicProfile = () => {
                     </div>
                     <div className="p-3">
                       <h3 className="text-white font-bold text-xs leading-tight line-clamp-2 group-hover:text-satori-accent transition-colors">
-                        {item.anime?.title?.english || item.anime?.title?.romaji}
+                        {item.anime?.title?.english || item.anime?.title?.romaji || 'Unknown'}
                       </h3>
                       <div className="mt-2 pt-2 border-t border-white/[0.05] flex justify-between items-center">
                         <span className="text-[8px] font-black text-satori-muted uppercase tracking-tighter">SCORE</span>
-                        <span className="text-[10px] font-black text-white">{item.score || '??'}/10</span>
+                        {item.score > 0 ? (
+                          <span className="flex items-center gap-1 text-yellow-500 text-[10px] font-black">
+                            <Star size={10} className="fill-current" /> {item.score}/10
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-black text-white/20">--</span>
+                        )}
                       </div>
                     </div>
                   </Link>

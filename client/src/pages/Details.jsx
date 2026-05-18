@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { ArrowLeft, Star, Users, Tv, Zap, Calendar, Info, Layout, Plus, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,12 +8,15 @@ import { AuthContext } from '../context/AuthContext';
 const Details = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [anime, setAnime] = useState(null);
   const [loading, setLoading] = useState(true);
   const [customLists, setCustomLists] = useState([]);
   const [showListModal, setShowListModal] = useState(false);
   const [syncStatus, setSyncStatus] = useState({}); // { listId: 'idle' | 'loading' | 'success' }
   const [userStatus, setUserStatus] = useState("NOT_IN_LIST");
+
+  const [userScore, setUserScore] = useState(0);
 
   const statuses = ['CURRENT', 'PLANNING', 'COMPLETED', 'DROPPED', 'PAUSED', 'REPEATING'];
 
@@ -28,7 +31,10 @@ const Details = () => {
         if (user) {
           const userListRes = await api.get('/user/list');
           const match = userListRes.data.data.find(item => item.animeId === Number(id));
-          if (match) setUserStatus(match.status);
+          if (match) {
+            setUserStatus(match.status);
+            setUserScore(match.score || 0);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch details", err);
@@ -47,6 +53,24 @@ const Details = () => {
     } catch (err) {
       console.error("Failed to update status", err);
       setUserStatus('error');
+    }
+  };
+
+  const updateScore = async (newScore) => {
+    const scoreVal = Number(newScore);
+    setUserScore(scoreVal);
+    try {
+      await api.post('/user/status-update', { animeId: id, score: scoreVal });
+    } catch (err) {
+      console.error("Failed to update score", err);
+    }
+  };
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/');
     }
   };
 
@@ -115,12 +139,15 @@ const Details = () => {
 
       <div className="max-w-7xl mx-auto px-8 pt-12">
         <div className="flex justify-between items-start mb-12">
-          <Link to="/" className="inline-flex items-center gap-2 text-satori-muted hover:text-white transition-all group">
+          <button 
+            onClick={handleBack} 
+            className="inline-flex items-center gap-2 text-satori-muted hover:text-white transition-all group"
+          >
             <div className="p-2 rounded-lg bg-white/5 border border-white/5 group-hover:border-satori-accent/30">
               <ArrowLeft size={18} />
             </div>
             <span className="text-sm font-bold uppercase tracking-widest">Back to Map</span>
-          </Link>
+          </button>
 
           {user && (
             <div className="flex flex-wrap items-center gap-4">
@@ -157,6 +184,22 @@ const Details = () => {
                     </svg>
                   </div>
                 </div>
+              </div>
+
+              {/* Personal Rating */}
+              <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1 px-3 gap-2">
+                <span className="text-[10px] font-black text-satori-accent tracking-widest uppercase">Rating</span>
+                <select 
+                  value={userScore}
+                  onChange={(e) => updateScore(e.target.value)}
+                  className="bg-transparent text-white text-xs font-black focus:outline-none cursor-pointer"
+                >
+                  <option value="0" className="bg-[#0a0a0c]">--</option>
+                  {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(n => (
+                    <option key={n} value={n} className="bg-[#0a0a0c]">{n}</option>
+                  ))}
+                </select>
+                <Star size={12} className="text-yellow-500 fill-current" />
               </div>
 
               <button 

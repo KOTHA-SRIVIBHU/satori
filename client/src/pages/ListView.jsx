@@ -85,10 +85,17 @@ const ListView = () => {
                 <h3 className="text-white font-bold text-xs leading-tight line-clamp-2 group-hover:text-satori-accent transition-colors">
                   {anime.title.english || anime.title.romaji}
                 </h3>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {anime.genres?.slice(0, 1).map(g => (
-                    <span key={g} className="text-[7px] font-black uppercase tracking-tighter px-1 bg-white/5 rounded text-satori-muted">{g}</span>
-                  ))}
+                <div className="mt-3 pt-2 border-t border-white/[0.05] flex justify-between items-center">
+                  <div className="flex flex-wrap gap-1">
+                    {anime.genres?.slice(0, 1).map(g => (
+                      <span key={g} className="text-[7px] font-black uppercase tracking-tighter px-1 bg-white/5 rounded text-satori-muted">{g}</span>
+                    ))}
+                  </div>
+                  {anime.userScore > 0 && (
+                    <span className="flex items-center gap-1 text-yellow-500 text-[10px] font-black">
+                      <Star size={10} className="fill-current" /> {anime.userScore}
+                    </span>
+                  )}
                 </div>
               </div>
             </Link>

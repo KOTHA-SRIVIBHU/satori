@@ -23,9 +23,15 @@ const AnimeCard = ({ anime, index }) => {
           
           {/* Top Info Tags */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
-            <div className="bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-yellow-500 text-[10px] font-black flex items-center gap-1 border border-white/10">
-              <Star size={10} fill="currentColor" /> {anime.averageScore || '??'}%
-            </div>
+            {anime.userScore > 0 ? (
+              <div className="bg-yellow-500/90 backdrop-blur-md px-2 py-1 rounded-lg text-black text-[10px] font-black flex items-center gap-1 border border-white/20">
+                <Star size={10} fill="currentColor" /> {anime.userScore}/10
+              </div>
+            ) : (
+              <div className="bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-yellow-500 text-[10px] font-black flex items-center gap-1 border border-white/10">
+                <Star size={10} fill="currentColor" /> {anime.averageScore || '??'}%
+              </div>
+            )}
           </div>
 
           <div className="absolute bottom-3 left-3 right-3">

@@ -49,8 +49,8 @@ exports.getMyLists = async (req, res) => {
 
 exports.getPublicList = async (req, res) => {
   try {
-    const list = await CustomList.findById(req.params.id).populate("owner", "username");
-    if (!list || (!list.isPublic && (!req.user || req.user.id !== list.owner.toString()))) {
+    const list = await CustomList.findById(req.params.id).populate("owner", "username animeList");
+    if (!list || (!list.isPublic && (!req.user || req.user.id !== list.owner._id.toString()))) {
       return res.status(404).json({ success: false, message: "List not found or private" });
     }
 
@@ -58,11 +58,22 @@ exports.getPublicList = async (req, res) => {
       list.animeIds.map(async (id) => {
         let anime = await mongoose.model("AnimeCache").findById(id);
         if (!anime) anime = await fetchAndCacheAnime(id);
-        return anime || { _id: id, title: { romaji: "Unknown" } };
+        
+        // Find owner's score for this anime
+        const userEntry = list.owner.animeList.find(item => item.animeId === id);
+        const userScore = userEntry ? userEntry.score : 0;
+
+        return {
+          ...(anime ? anime._doc : { _id: id, title: { romaji: "Unknown" } }),
+          userScore
+        };
       })
     );
 
-    res.json({ success: true, data: { ...list._doc, anime: populatedAnime } });
+    // Clean up owner object before sending
+    const ownerData = { username: list.owner.username, _id: list.owner._id };
+
+    res.json({ success: true, data: { ...list._doc, owner: ownerData, anime: populatedAnime } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

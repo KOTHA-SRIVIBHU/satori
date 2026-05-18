@@ -1,6 +1,7 @@
 const axios = require("axios");
 const mongoose = require("mongoose");
 const User = require("../models/User");
+const CustomList = require("../models/CustomList");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { fetchAndCacheAnime } = require("../services/animeService");
@@ -245,29 +246,70 @@ exports.updateAnimeStatus = async (req, res) => {
 
 exports.getPublicProfile = async (req, res) => {
   const { username } = req.params;
+  console.log(`🔍 Public profile request for: ${username}`);
   try {
-    const user = await User.findOne({ username }).select("-password");
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } }).select("-password");
+    if (!user) {
+      console.warn(`❌ User not found: ${username}`);
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    console.log(`✅ Found user: ${user.username}. Anime count: ${user.animeList.length}`);
 
     // Fetch custom lists that are public
-    const CustomList = mongoose.model("CustomList");
     const publicLists = await CustomList.find({ owner: user._id, isPublic: true });
+    console.log(`📁 Found ${publicLists.length} public custom lists.`);
 
     // Populate anime details for the main AniList sync
     const animeIds = user.animeList.map(item => item.animeId);
     const cachedAnime = await mongoose.model("AnimeCache").find({ _id: { $in: animeIds } });
     const cacheMap = new Map(cachedAnime.map(a => [a._id, a]));
 
-    const populatedMainList = user.animeList.map(item => ({
-      ...item._doc,
-      anime: cacheMap.get(item.animeId) || { title: { romaji: "Unknown" }, coverImage: "" }
+    const missingIds = [];
+    const populatedMainList = [];
+
+    for (const item of user.animeList) {
+      const anime = cacheMap.get(item.animeId);
+      if (anime) {
+        populatedMainList.push({ ...item._doc, anime });
+      } else {
+        missingIds.push(item.animeId);
+        populatedMainList.push({ ...item._doc, anime: null });
+      }
+    }
+
+    // Batch fetch missing IDs for public profile too!
+    if (missingIds.length > 0) {
+      try {
+        const chunks = [];
+        for (let i = 0; i < missingIds.length; i += 50) chunks.push(missingIds.slice(i, i + 50));
+        for (const chunk of chunks) {
+          const query = `query ($ids: [Int]) { Page { media(id_in: $ids, type: ANIME) { id title { english romaji } coverImage { large } format status genres averageScore description startDate { year month day } } } }`;
+          const response = await axios.post("https://graphql.anilist.co", { query, variables: { ids: chunk } });
+          const fetchedMedia = response.data.data.Page.media;
+          for (const anime of fetchedMedia) {
+            const newCache = await mongoose.model("AnimeCache").findOneAndUpdate(
+              { _id: anime.id },
+              { title: anime.title, coverImage: anime.coverImage.large, format: anime.format, status: anime.status, genres: anime.genres, averageScore: anime.averageScore, description: anime.description, startDate: anime.startDate },
+              { upsert: true, returnDocument: 'after' }
+            );
+            const target = populatedMainList.find(p => p.animeId === anime.id);
+            if (target) target.anime = newCache;
+          }
+        }
+      } catch (err) { console.warn("Public batch fetch failed:", err.message); }
+    }
+
+    const finalMainList = populatedMainList.map(item => ({
+      ...item,
+      anime: item.anime || { title: { romaji: "Unknown" }, coverImage: "" }
     }));
 
     res.json({
       success: true,
       data: {
         username: user.username,
-        mainList: populatedMainList,
+        mainList: finalMainList,
         customLists: publicLists
       }
     });

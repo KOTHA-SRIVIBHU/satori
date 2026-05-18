@@ -1,17 +1,64 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import AnimeCard from '../components/AnimeCard';
 import { Search as SearchIcon, Loader2, Zap, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AuthContext } from '../context/AuthContext';
 
 const Home = () => {
-  const [query, setQ] = useState("");
+  const { user } = useContext(AuthContext);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlQuery = searchParams.get('q') || "";
+
+  const [query, setQ] = useState(urlQuery);
   const [results, setResults] = useState([]);
+  const [userList, setUserList] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      const fetchUserList = async () => {
+        try {
+          const { data } = await api.get('/user/list');
+          setUserList(data.data);
+        } catch (err) {
+          console.error("Failed to fetch user list", err);
+        }
+      };
+      fetchUserList();
+    }
+  }, [user]);
+
+  const enrichResults = (rawResults) => {
+    if (!user) return rawResults;
+    return rawResults.map(anime => {
+      const match = userList.find(item => item.animeId === anime.id);
+      return match ? { ...anime, userScore: match.score, userStatus: match.status } : anime;
+    });
+  };
+
+  useEffect(() => {
+    if (urlQuery.length > 2) {
+      const performInitialSearch = async () => {
+        setLoading(true);
+        try {
+          const { data } = await api.get(`/anime/search?q=${urlQuery}`);
+          setResults(enrichResults(data.data));
+        } catch (err) {
+          console.error("Initial search failed", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      performInitialSearch();
+    } else {
+      setResults([]);
+    }
+  }, [urlQuery, userList]);
 
   // Debounced Autocomplete
   useEffect(() => {
@@ -20,7 +67,7 @@ const Home = () => {
         setIsTyping(true);
         try {
           const { data } = await api.get(`/anime/search?q=${query}`);
-          setSuggestions(data.data.slice(0, 6));
+          setSuggestions(enrichResults(data.data.slice(0, 6)));
         } catch (err) {
           console.error("Autocomplete failed", err);
         } finally {
@@ -37,16 +84,8 @@ const Home = () => {
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
     if (!query) return;
-    setLoading(true);
+    setSearchParams({ q: query });
     setSuggestions([]);
-    try {
-      const { data } = await api.get(`/anime/search?q=${query}`);
-      setResults(data.data);
-    } catch (err) {
-      console.error("Search failed", err);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
