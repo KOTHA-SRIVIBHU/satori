@@ -73,46 +73,45 @@ const Profile = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 mt-10">
-      <div className="bg-satori-card rounded-3xl border border-white/5 p-10 text-center">
-        <div className="inline-block p-4 bg-satori-accent/10 rounded-full text-satori-accent mb-6">
-          <UserIcon size={48} />
+    <div className="max-w-4xl mx-auto p-8 mt-4">
+      <div className="bg-satori-card rounded-3xl border border-white/5 p-6 text-center">
+        <div className="inline-block p-3 bg-satori-accent/10 rounded-full text-satori-accent mb-4">
+          <UserIcon size={32} />
         </div>
         
         {user ? (
           <>
-            <h1 className="text-4xl font-bold mb-2">{user.username}</h1>
-            <p className="text-satori-muted mb-10">{user.email}</p>
+            <h1 className="text-3xl font-bold mb-1">{user.username}</h1>
+            <p className="text-satori-muted mb-6 text-sm">{user.email}</p>
           </>
         ) : (
           <>
-            <h1 className="text-4xl font-bold mb-2 text-white">Local Explorer</h1>
-            <p className="text-satori-muted mb-10">You are currently offline. Your sync data will be saved to this browser.</p>
-            <button onClick={() => navigate('/register')} className="mb-8 px-6 py-2 bg-satori-accent/20 text-satori-accent font-bold rounded-lg hover:bg-satori-accent hover:text-white transition-all">Create an account to save data online</button>
+            <h1 className="text-3xl font-bold mb-1 text-white">Local Explorer</h1>
+            <p className="text-satori-muted mb-6 text-sm">You are currently offline. Your sync data will be saved locally.</p>
           </>
         )}
 
-        <div className="max-w-md mx-auto bg-satori-dark/50 p-8 rounded-2xl border border-white/5 text-left">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <RefreshCw size={20} className="text-satori-accent" /> AniList Sync
+        <div className="max-w-md mx-auto bg-satori-dark/50 p-6 rounded-2xl border border-white/5 text-left">
+          <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
+            <RefreshCw size={18} className="text-satori-accent" /> AniList Sync
           </h2>
-          <p className="text-sm text-satori-muted mb-6">
+          <p className="text-[11px] text-satori-muted mb-4 leading-relaxed">
             Enter your AniList username to import your watched history, scores, and status.
           </p>
 
-          <form onSubmit={handleSync} className="space-y-4">
+          <form onSubmit={handleSync} className="space-y-3">
             <input
               type="text"
-              placeholder="AniList Username"
-              className="w-full bg-satori-card border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-satori-accent transition-all text-white"
+              placeholder={anilistUser || "AniList Username"}
+              className="w-full bg-satori-card border border-white/10 rounded-xl py-2.5 px-4 focus:outline-none focus:border-satori-accent transition-all text-white text-sm"
               value={anilistUser}
               onChange={(e) => setAnilistUser(e.target.value)}
             />
             <button
               disabled={status === "loading"}
-              className="w-full bg-satori-accent hover:bg-satori-accent/80 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+              className="w-full bg-satori-accent hover:bg-satori-accent/80 text-white font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
             >
-              {status === "loading" ? <RefreshCw className="animate-spin" size={20} /> : "Start Intelligence Sync"}
+              {status === "loading" ? <RefreshCw className="animate-spin" size={18} /> : "Start Intelligence Sync"}
             </button>
           </form>
 

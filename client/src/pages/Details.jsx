@@ -162,27 +162,27 @@ const Details = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Left: Poster & Tags */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-3">
             <motion.div
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
               className="sticky top-32"
             >
-              <div className="relative group max-w-[320px] mx-auto lg:mx-0">
+              <div className="relative group max-w-[240px] mx-auto lg:mx-0">
                 <img 
                   src={anime.coverImage} 
                   alt="" 
-                  className="w-full h-auto rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10" 
+                  className="w-full h-auto rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10" 
                 />
                 <div className="absolute -inset-4 bg-satori-accent/20 blur-3xl rounded-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               </div>
 
-              <div className="mt-8 flex flex-wrap gap-2">
+              <div className="mt-6 flex flex-wrap gap-2">
                 {anime.genres?.map(g => (
-                  <span key={g} className="px-4 py-1.5 bg-white/[0.03] border border-white/[0.08] text-white/80 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-satori-accent/50 transition-colors">
+                  <span key={g} className="px-3 py-1.5 bg-white/[0.03] border border-white/[0.08] text-white/80 rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-satori-accent/50 transition-colors">
                     {g}
                   </span>
                 ))}
@@ -191,20 +191,20 @@ const Details = () => {
           </div>
 
           {/* Right: Detailed Intelligence */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-9">
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              <div className="mb-10">
-                <div className="flex items-center gap-3 text-satori-accent font-black text-[10px] uppercase tracking-[0.3em] mb-4">
-                  <Layout size={14} /> Entry #{anime._id}
+              <div className="mb-8">
+                <div className="flex items-center gap-3 text-satori-accent font-black text-[9px] uppercase tracking-[0.3em] mb-3">
+                  <Layout size={12} /> Entry #{anime._id}
                 </div>
-                <h1 className="text-6xl md:text-7xl font-black tracking-tighter mb-6 leading-[0.9]">
+                <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-4 leading-tight">
                   {anime.title?.english || anime.title?.romaji}
                 </h1>
-                <p className="text-2xl text-white/40 font-light uppercase tracking-[0.2em]">{anime.format}</p>
+                <p className="text-lg text-white/40 font-light uppercase tracking-[0.2em]">{anime.format}</p>
               </div>
 
               {/* Stats Grid */}
@@ -255,12 +255,12 @@ const Details = () => {
                  </div>
               </div>
 
-              <h2 className="text-2xl font-black tracking-tight mb-6 flex items-center gap-3">
-                <div className="w-1.5 h-6 bg-satori-accent rounded-full" />
+              <h2 className="text-xl font-black tracking-tight mb-4 flex items-center gap-3">
+                <div className="w-1 h-5 bg-satori-accent rounded-full" />
                 Synopsis
               </h2>
               <div 
-                className="text-lg text-satori-muted leading-relaxed font-medium space-y-4"
+                className="text-base text-satori-muted leading-relaxed font-medium space-y-4"
                 dangerouslySetInnerHTML={{ __html: anime.description }}
               />
             </motion.div>

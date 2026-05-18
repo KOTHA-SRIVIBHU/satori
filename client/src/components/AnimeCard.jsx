@@ -38,9 +38,16 @@ const AnimeCard = ({ anime, index }) => {
         </div>
 
         <div className="p-4 flex-grow flex flex-col justify-between bg-gradient-to-b from-transparent to-white/[0.02]">
-          <h3 className="font-bold text-sm leading-tight line-clamp-2 group-hover:text-satori-accent transition-colors mb-3">
-            {anime.title}
-          </h3>
+          <div>
+            <h3 className="font-bold text-sm leading-tight line-clamp-2 group-hover:text-satori-accent transition-colors mb-2">
+              {anime.title}
+            </h3>
+            <div className="flex flex-wrap gap-1 mb-3">
+              {anime.genres?.slice(0, 2).map(g => (
+                <span key={g} className="text-[8px] font-bold text-white/40 uppercase tracking-tighter">{g}</span>
+              ))}
+            </div>
+          </div>
           
           <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-satori-muted border-t border-white/[0.05] pt-3">
             <span className="flex items-center gap-1.5">
