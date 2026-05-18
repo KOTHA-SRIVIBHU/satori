@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 import { motion } from 'framer-motion';
-import { Zap, Globe, Share2, TrendingUp, BarChart3 } from 'lucide-react';
+import { Zap, Globe, Star, BarChart3 } from 'lucide-react';
 
 const PublicProfile = () => {
   const { username } = useParams();
@@ -142,6 +142,12 @@ const PublicProfile = () => {
                 </motion.div>
               ))}
             </div>
+
+            {filteredMainList.length === 0 && (
+              <div className="py-32 text-center text-satori-muted uppercase tracking-[0.2em] font-bold border-2 border-dashed border-white/5 rounded-[3rem]">
+                No intelligence entries found in this category.
+              </div>
+            )}
           </>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -2,6 +2,7 @@ const axios = require("axios");
 const mongoose = require("mongoose");
 const User = require("../models/User");
 const CustomList = require("../models/CustomList");
+const AnimeCache = require("../models/AnimeCache");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { fetchAndCacheAnime } = require("../services/animeService");
@@ -133,7 +134,7 @@ exports.getUserList = async (req, res) => {
 
     // 1. Fetch ALL cached anime in ONE database query
     const animeIds = user.animeList.map(item => item.animeId);
-    const cachedAnime = await mongoose.model("AnimeCache").find({ _id: { $in: animeIds } });
+    const cachedAnime = await AnimeCache.find({ _id: { $in: animeIds } });
     
     // Create a lookup map for instant access
     const cacheMap = new Map(cachedAnime.map(a => [a._id, a]));
@@ -143,11 +144,12 @@ exports.getUserList = async (req, res) => {
 
     for (const item of user.animeList) {
       const anime = cacheMap.get(item.animeId);
+      const itemObj = item.toObject ? item.toObject() : item;
       if (anime) {
-        populatedList.push({ ...item._doc, anime });
+        populatedList.push({ ...itemObj, anime });
       } else {
         missingIds.push(item.animeId);
-        populatedList.push({ ...item._doc, anime: null }); // placeholder
+        populatedList.push({ ...itemObj, anime: null }); // placeholder
       }
     }
 
@@ -175,7 +177,7 @@ exports.getUserList = async (req, res) => {
           const fetchedMedia = response.data.data.Page.media;
 
           const cacheUpdates = fetchedMedia.map(async (anime) => {
-            const newCache = await mongoose.model("AnimeCache").findOneAndUpdate(
+            const newCache = await AnimeCache.findOneAndUpdate(
               { _id: anime.id },
               {
                 title: anime.title, coverImage: anime.coverImage.large, format: anime.format,
@@ -230,9 +232,8 @@ exports.updateAnimeStatus = async (req, res) => {
       });
       
       // Trigger cache fetch if missing
-      const cache = await mongoose.model("AnimeCache").findById(animeId);
+      const cache = await AnimeCache.findById(animeId);
       if (!cache) {
-        const { fetchAndCacheAnime } = require("../services/animeService");
         await fetchAndCacheAnime(animeId);
       }
     }
@@ -262,7 +263,7 @@ exports.getPublicProfile = async (req, res) => {
 
     // Populate anime details for the main AniList sync
     const animeIds = user.animeList.map(item => item.animeId);
-    const cachedAnime = await mongoose.model("AnimeCache").find({ _id: { $in: animeIds } });
+    const cachedAnime = await AnimeCache.find({ _id: { $in: animeIds } });
     const cacheMap = new Map(cachedAnime.map(a => [a._id, a]));
 
     const missingIds = [];
@@ -270,16 +271,18 @@ exports.getPublicProfile = async (req, res) => {
 
     for (const item of user.animeList) {
       const anime = cacheMap.get(item.animeId);
+      const itemObj = item.toObject ? item.toObject() : item;
       if (anime) {
-        populatedMainList.push({ ...item._doc, anime });
+        populatedMainList.push({ ...itemObj, anime });
       } else {
         missingIds.push(item.animeId);
-        populatedMainList.push({ ...item._doc, anime: null });
+        populatedMainList.push({ ...itemObj, anime: null });
       }
     }
 
     // Batch fetch missing IDs for public profile too!
     if (missingIds.length > 0) {
+      console.log(`🚀 Batch fetching ${missingIds.length} missing anime for public profile...`);
       try {
         const chunks = [];
         for (let i = 0; i < missingIds.length; i += 50) chunks.push(missingIds.slice(i, i + 50));
@@ -288,7 +291,7 @@ exports.getPublicProfile = async (req, res) => {
           const response = await axios.post("https://graphql.anilist.co", { query, variables: { ids: chunk } });
           const fetchedMedia = response.data.data.Page.media;
           for (const anime of fetchedMedia) {
-            const newCache = await mongoose.model("AnimeCache").findOneAndUpdate(
+            const newCache = await AnimeCache.findOneAndUpdate(
               { _id: anime.id },
               { title: anime.title, coverImage: anime.coverImage.large, format: anime.format, status: anime.status, genres: anime.genres, averageScore: anime.averageScore, description: anime.description, startDate: anime.startDate },
               { upsert: true, returnDocument: 'after' }
@@ -305,6 +308,8 @@ exports.getPublicProfile = async (req, res) => {
       anime: item.anime || { title: { romaji: "Unknown" }, coverImage: "" }
     }));
 
+    console.log(`✨ Sending profile for ${user.username}. Main list entries: ${finalMainList.length}`);
+
     res.json({
       success: true,
       data: {
@@ -314,6 +319,7 @@ exports.getPublicProfile = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error("Public profile error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
