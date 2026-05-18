@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // Our Node.js Gateway URL
+  baseURL: 'https://satori-vbj0.onrender.com/api', // Our Node.js Gateway URL
 });
 
 // Add a request interceptor to include the JWT token
