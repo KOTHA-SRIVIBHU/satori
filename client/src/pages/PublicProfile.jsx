@@ -87,7 +87,7 @@ const PublicProfile = () => {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
               {filteredMainList.map((item, index) => (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -97,22 +97,25 @@ const PublicProfile = () => {
                 >
                   <Link 
                     to={`/anime/${item.animeId}`}
-                    className="group block bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden hover:border-satori-accent/50 transition-all h-full"
+                    className="group block bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden hover:border-satori-accent/50 transition-all h-full shadow-lg"
                   >
-                    <div className="aspect-[2/3] overflow-hidden">
+                    <div className="aspect-[2/3] overflow-hidden relative">
                       <img 
                         src={item.anime?.coverImage || 'https://via.placeholder.com/100x150'} 
                         alt=""
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
+                      <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-black/60 backdrop-blur-md rounded text-[8px] font-black text-satori-accent border border-white/5 uppercase tracking-widest">
+                        {item.status}
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="text-white font-bold leading-tight line-clamp-2 group-hover:text-satori-accent transition-colors">
+                    <div className="p-3">
+                      <h3 className="text-white font-bold text-xs leading-tight line-clamp-2 group-hover:text-satori-accent transition-colors">
                         {item.anime?.title?.english || item.anime?.title?.romaji}
                       </h3>
-                      <div className="mt-3 flex justify-between items-end">
-                        <span className="text-[9px] font-black text-satori-accent uppercase tracking-widest">{item.status}</span>
-                        <div className="text-[10px] text-satori-muted font-bold">Score: <span className="text-white">{item.score || '??'}</span></div>
+                      <div className="mt-2 pt-2 border-t border-white/[0.05] flex justify-between items-center">
+                        <span className="text-[8px] font-black text-satori-muted uppercase tracking-tighter">SCORE</span>
+                        <span className="text-[10px] font-black text-white">{item.score || '??'}/10</span>
                       </div>
                     </div>
                   </Link>

@@ -62,7 +62,7 @@ const ListView = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
         {listData.anime.map((anime, index) => (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -72,7 +72,7 @@ const ListView = () => {
           >
             <Link 
               to={`/anime/${anime._id}`}
-              className="group block bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden hover:border-satori-accent/50 transition-all"
+              className="group block bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden hover:border-satori-accent/50 transition-all shadow-lg"
             >
               <div className="aspect-[2/3] overflow-hidden">
                 <img 
@@ -81,13 +81,13 @@ const ListView = () => {
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
-              <div className="p-4">
-                <h3 className="text-white font-bold leading-tight line-clamp-2 group-hover:text-satori-accent transition-colors">
+              <div className="p-3">
+                <h3 className="text-white font-bold text-xs leading-tight line-clamp-2 group-hover:text-satori-accent transition-colors">
                   {anime.title.english || anime.title.romaji}
                 </h3>
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {anime.genres?.slice(0, 2).map(g => (
-                    <span key={g} className="text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 bg-white/5 rounded text-satori-muted">{g}</span>
+                  {anime.genres?.slice(0, 1).map(g => (
+                    <span key={g} className="text-[7px] font-black uppercase tracking-tighter px-1 bg-white/5 rounded text-satori-muted">{g}</span>
                   ))}
                 </div>
               </div>
