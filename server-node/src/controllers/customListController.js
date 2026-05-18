@@ -23,8 +23,8 @@ exports.addAnimeToList = async (req, res) => {
     const list = await CustomList.findOne({ _id: listId, owner: req.user.id });
     if (!list) return res.status(404).json({ success: false, message: "List not found" });
 
-    if (!list.animeIds.includes(animeId)) {
-      list.animeIds.push(animeId);
+    if (!list.animeIds.includes(Number(animeId))) {
+      list.animeIds.push(Number(animeId));
       await list.save();
       
       // Ensure it's cached
@@ -33,6 +33,32 @@ exports.addAnimeToList = async (req, res) => {
     }
 
     res.json({ success: true, data: list });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.removeAnimeFromList = async (req, res) => {
+  const { listId, animeId } = req.body;
+  try {
+    const list = await CustomList.findOne({ _id: listId, owner: req.user.id });
+    if (!list) return res.status(404).json({ success: false, message: "List not found" });
+
+    list.animeIds = list.animeIds.filter(id => id !== Number(animeId));
+    await list.save();
+
+    res.json({ success: true, data: list, message: "Anime removed from list" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteList = async (req, res) => {
+  try {
+    const list = await CustomList.findOneAndDelete({ _id: req.params.id, owner: req.user.id });
+    if (!list) return res.status(404).json({ success: false, message: "List not found" });
+
+    res.json({ success: true, message: "Collection deleted successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -88,16 +88,29 @@ const Details = () => {
     }
   }, [user, showListModal]);
 
-  const addToList = async (listId) => {
+  const addToList = async (listId, isAlreadyIn) => {
     setSyncStatus({ ...syncStatus, [listId]: 'loading' });
     try {
-      await api.post('/lists/add', { listId, animeId: Number(id) });
+      const endpoint = isAlreadyIn ? '/lists/remove' : '/lists/add';
+      await api.post(endpoint, { listId, animeId: Number(id) });
+      
+      // Update local state
+      setCustomLists(prev => prev.map(l => {
+        if (l._id === listId) {
+          const newIds = isAlreadyIn 
+            ? l.animeIds.filter(aid => aid !== Number(id))
+            : [...l.animeIds, Number(id)];
+          return { ...l, animeIds: newIds };
+        }
+        return l;
+      }));
+
       setSyncStatus({ ...syncStatus, [listId]: 'success' });
       setTimeout(() => {
         setSyncStatus(prev => ({ ...prev, [listId]: 'idle' }));
       }, 2000);
     } catch (err) {
-      console.error("Failed to add to list", err);
+      console.error("Failed to update list", err);
       setSyncStatus({ ...syncStatus, [listId]: 'idle' });
     }
   };
@@ -340,26 +353,35 @@ const Details = () => {
               <p className="text-satori-muted mb-8 text-sm">Select a list to store this intelligence entry.</p>
               
               <div className="space-y-3 max-h-[40vh] overflow-y-auto mb-8 pr-2">
-                {customLists.map(list => (
-                  <button
-                    key={list._id}
-                    onClick={() => addToList(list._id)}
-                    disabled={syncStatus[list._id] === 'loading' || syncStatus[list._id] === 'success'}
-                    className="w-full flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-2xl hover:border-satori-accent/50 transition-all group"
-                  >
-                    <div className="text-left">
-                      <p className="font-bold text-white group-hover:text-satori-accent transition-colors">{list.name}</p>
-                      <p className="text-[10px] text-satori-muted uppercase tracking-widest mt-1">{list.animeIds.length} ENTRIES</p>
-                    </div>
-                    {syncStatus[list._id] === 'success' ? (
-                      <CheckCircle2 className="text-green-400" size={20} />
-                    ) : syncStatus[list._id] === 'loading' ? (
-                      <div className="w-5 h-5 border-2 border-satori-accent border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <Plus className="text-white/20 group-hover:text-satori-accent" size={20} />
-                    )}
-                  </button>
-                ))}
+                {customLists.map(list => {
+                  const isAlreadyIn = list.animeIds.includes(Number(id));
+                  return (
+                    <button
+                      key={list._id}
+                      onClick={() => addToList(list._id, isAlreadyIn)}
+                      disabled={syncStatus[list._id] === 'loading'}
+                      className={`w-full flex items-center justify-between p-5 bg-white/5 border rounded-2xl transition-all group ${
+                        isAlreadyIn ? 'border-satori-accent/50 bg-satori-accent/5' : 'border-white/5 hover:border-satori-accent/50'
+                      }`}
+                    >
+                      <div className="text-left">
+                        <p className={`font-bold transition-colors ${isAlreadyIn ? 'text-satori-accent' : 'text-white group-hover:text-satori-accent'}`}>
+                          {list.name}
+                        </p>
+                        <p className="text-[10px] text-satori-muted uppercase tracking-widest mt-1">{list.animeIds.length} ENTRIES</p>
+                      </div>
+                      {syncStatus[list._id] === 'success' ? (
+                        <CheckCircle2 className="text-green-400" size={20} />
+                      ) : syncStatus[list._id] === 'loading' ? (
+                        <div className="w-5 h-5 border-2 border-satori-accent border-t-transparent rounded-full animate-spin" />
+                      ) : isAlreadyIn ? (
+                        <CheckCircle2 className="text-satori-accent" size={20} />
+                      ) : (
+                        <Plus className="text-white/20 group-hover:text-satori-accent" size={20} />
+                      )}
+                    </button>
+                  );
+                })}
                 
                 {customLists.length === 0 && (
                   <div className="text-center py-10">

@@ -1,26 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useEffect, useState, useContext } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Share2, Globe, Lock } from 'lucide-react';
+import { ArrowLeft, Share2, Globe, Lock, Trash2, X, Star } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext';
 
 const ListView = () => {
   const { id } = useParams();
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [listData, setListData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  const isOwner = user && listData?.owner?._id === user._id;
+
+  const fetchList = async () => {
+    try {
+      const { data } = await api.get(`/lists/${id}`);
+      setListData(data.data);
+    } catch (err) {
+      console.error("Failed to fetch list", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchList = async () => {
-      try {
-        const { data } = await api.get(`/lists/${id}`);
-        setListData(data.data);
-      } catch (err) {
-        console.error("Failed to fetch list", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchList();
   }, [id]);
 
@@ -30,15 +36,48 @@ const ListView = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (loading) return <div className="p-20 text-center text-white">Loading Collection...</div>;
+  const handleDeleteList = async () => {
+    if (!window.confirm("Are you sure you want to permanently delete this collection?")) return;
+    try {
+      await api.delete(`/lists/${id}`);
+      navigate('/list?tab=custom');
+    } catch (err) {
+      console.error("Failed to delete list", err);
+    }
+  };
+
+  const handleRemoveAnime = async (e, animeId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await api.post('/lists/remove', { listId: id, animeId });
+      fetchList(); // Refresh
+    } catch (err) {
+      console.error("Failed to remove anime", err);
+    }
+  };
+
+  if (loading) return <div className="p-20 text-center text-white font-black tracking-widest animate-pulse">DECODING COLLECTION...</div>;
   if (!listData) return <div className="p-20 text-center text-white">Collection not found or private.</div>;
 
   return (
     <div className="py-12 px-8 max-w-7xl mx-auto">
-      <Link to="/list" className="inline-flex items-center gap-2 text-satori-muted hover:text-white mb-12 transition-all">
-        <ArrowLeft size={18} />
-        <span className="text-sm font-bold uppercase tracking-widest">Back to Intelligence Center</span>
-      </Link>
+      <div className="flex justify-between items-center mb-12">
+        <Link to="/list?tab=custom" className="inline-flex items-center gap-2 text-satori-muted hover:text-white transition-all">
+          <ArrowLeft size={18} />
+          <span className="text-sm font-bold uppercase tracking-widest">Back to Intelligence Center</span>
+        </Link>
+        
+        {isOwner && (
+          <button 
+            onClick={handleDeleteList}
+            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+          >
+            <Trash2 size={14} />
+            Purge Collection
+          </button>
+        )}
+      </div>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
         <div>
@@ -69,10 +108,19 @@ const ListView = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
             key={anime._id}
+            className="relative group"
           >
+            {isOwner && (
+              <button 
+                onClick={(e) => handleRemoveAnime(e, anime._id)}
+                className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 backdrop-blur-md rounded-lg text-white/40 hover:text-red-500 border border-white/5 opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+              >
+                <X size={14} />
+              </button>
+            )}
             <Link 
               to={`/anime/${anime._id}`}
-              className="group block bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden hover:border-satori-accent/50 transition-all shadow-lg"
+              className="block bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden hover:border-satori-accent/50 transition-all shadow-lg h-full"
             >
               <div className="aspect-[2/3] overflow-hidden">
                 <img 
