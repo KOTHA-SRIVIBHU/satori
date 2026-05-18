@@ -121,26 +121,30 @@ const MyList = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(index * 0.02, 0.4) }}
                   key={item.animeId}
-                  className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex gap-4 p-4 hover:border-satori-accent/50 transition-all"
                 >
-                  <img 
-                    src={item.anime?.coverImage || 'https://via.placeholder.com/100x150'} 
-                    alt={item.anime?.title?.romaji}
-                    className="w-24 h-36 object-cover rounded-lg shadow-lg"
-                  />
-                  <div className="flex flex-col justify-between py-1">
-                    <div>
-                      <h3 className="text-white font-bold leading-tight line-clamp-2">
-                        {item.anime?.title?.english || item.anime?.title?.romaji}
-                      </h3>
-                      <span className="text-xs font-bold text-satori-accent uppercase tracking-widest mt-2 block">
-                        {item.status}
-                      </span>
+                  <Link 
+                    to={`/anime/${item.animeId}`}
+                    className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex gap-4 p-4 hover:border-satori-accent/50 transition-all h-full group"
+                  >
+                    <img 
+                      src={item.anime?.coverImage || 'https://via.placeholder.com/100x150'} 
+                      alt={item.anime?.title?.romaji}
+                      className="w-24 h-36 object-cover rounded-lg shadow-lg group-hover:scale-105 transition-transform"
+                    />
+                    <div className="flex flex-col justify-between py-1">
+                      <div>
+                        <h3 className="text-white font-bold leading-tight line-clamp-2 group-hover:text-satori-accent transition-colors">
+                          {item.anime?.title?.english || item.anime?.title?.romaji}
+                        </h3>
+                        <span className="text-xs font-bold text-satori-accent uppercase tracking-widest mt-2 block">
+                          {item.status}
+                        </span>
+                      </div>
+                      <div className="text-satori-muted text-sm">
+                        Score: <span className="text-white font-mono">{item.score || 'N/A'}</span>
+                      </div>
                     </div>
-                    <div className="text-satori-muted text-sm">
-                      Score: <span className="text-white font-mono">{item.score || 'N/A'}</span>
-                    </div>
-                  </div>
+                  </Link>
                 </motion.div>
               ))}
             </div>

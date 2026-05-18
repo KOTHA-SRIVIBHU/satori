@@ -8,5 +8,6 @@ router.post("/login", userController.login);
 router.post("/sync-anilist", protect, userController.syncAniList);
 router.get("/list", protect, userController.getUserList);
 router.post("/status-update", protect, userController.updateAnimeStatus);
+router.get("/public/:username", userController.getPublicProfile);
 
 module.exports = router;

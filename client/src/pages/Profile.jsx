@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from 'react';
 import api from '../services/api';
-import { RefreshCw, CheckCircle2, AlertCircle, User as UserIcon } from 'lucide-react';
+import { RefreshCw, CheckCircle2, AlertCircle, User as UserIcon, Share2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // Import axios for offline AniList query
@@ -11,6 +11,7 @@ const Profile = () => {
   const [anilistUser, setAnilistUser] = useState("");
   const [status, setStatus] = useState("idle"); // idle, loading, success, error
   const [message, setMessage] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (user && user.anilistId) {
@@ -20,6 +21,13 @@ const Profile = () => {
       if (localSync) setAnilistUser(localSync);
     }
   }, [user]);
+
+  const handleShareProfile = () => {
+    const url = `${window.location.origin}/profile/${user.username}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleOfflineSync = async (username) => {
     const query = `
@@ -82,7 +90,14 @@ const Profile = () => {
         {user ? (
           <>
             <h1 className="text-3xl font-bold mb-1">{user.username}</h1>
-            <p className="text-satori-muted mb-6 text-sm">{user.email}</p>
+            <p className="text-satori-muted mb-4 text-sm">{user.email}</p>
+            <button 
+              onClick={handleShareProfile}
+              className="mb-8 inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all"
+            >
+              <Share2 size={14} />
+              {copied ? 'Profile Link Copied!' : 'Share Public Profile'}
+            </button>
           </>
         ) : (
           <>

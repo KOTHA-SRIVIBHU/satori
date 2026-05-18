@@ -62,6 +62,7 @@ exports.searchAnime = async (req, res) => {
         image: a.coverImage.large,
         year: a.startDate?.year,
         status: a.status,
+        genres: a.genres,
         averageScore: a.averageScore,
         source: "api"
       }));

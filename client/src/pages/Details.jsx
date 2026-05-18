@@ -139,16 +139,24 @@ const Details = () => {
                     {s === 'CURRENT' ? 'WATCHING' : s}
                   </button>
                 ))}
-                <select 
-                  onChange={(e) => updateStatus(e.target.value)}
-                  value={statuses.includes(userStatus) && !['CURRENT', 'PLANNING', 'COMPLETED'].includes(userStatus) ? userStatus : ""}
-                  className="bg-transparent text-satori-muted text-[10px] font-black tracking-widest px-2 focus:outline-none appearance-none cursor-pointer"
-                >
-                  <option value="" disabled className="bg-[#0a0a0c]">MORE</option>
-                  <option value="PAUSED" className="bg-[#0a0a0c]">PAUSED</option>
-                  <option value="DROPPED" className="bg-[#0a0a0c]">DROPPED</option>
-                  <option value="REPEATING" className="bg-[#0a0a0c]">REPEATING</option>
-                </select>
+                <div className="relative group/select">
+                  <select 
+                    onChange={(e) => updateStatus(e.target.value)}
+                    value={statuses.includes(userStatus) && !['CURRENT', 'PLANNING', 'COMPLETED'].includes(userStatus) ? userStatus : ""}
+                    className="bg-transparent text-satori-muted text-[10px] font-black tracking-widest pl-4 pr-8 h-full focus:outline-none appearance-none cursor-pointer hover:text-white transition-colors"
+                  >
+                    <option value="" disabled className="bg-[#0a0a0c]">MORE</option>
+                    <option value="PAUSED" className="bg-[#0a0a0c]">PAUSED</option>
+                    <option value="DROPPED" className="bg-[#0a0a0c]">DROPPED</option>
+                    <option value="REPEATING" className="bg-[#0a0a0c]">REPEATING</option>
+                    {userStatus !== 'NOT_IN_LIST' && <option value="REMOVE" className="bg-red-900/20 text-red-400">REMOVE</option>}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-satori-muted group-hover/select:text-white transition-colors">
+                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 1L4 4L7 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <button 

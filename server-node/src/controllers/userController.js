@@ -242,3 +242,36 @@ exports.updateAnimeStatus = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.getPublicProfile = async (req, res) => {
+  const { username } = req.params;
+  try {
+    const user = await User.findOne({ username }).select("-password");
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    // Fetch custom lists that are public
+    const CustomList = mongoose.model("CustomList");
+    const publicLists = await CustomList.find({ owner: user._id, isPublic: true });
+
+    // Populate anime details for the main AniList sync
+    const animeIds = user.animeList.map(item => item.animeId);
+    const cachedAnime = await mongoose.model("AnimeCache").find({ _id: { $in: animeIds } });
+    const cacheMap = new Map(cachedAnime.map(a => [a._id, a]));
+
+    const populatedMainList = user.animeList.map(item => ({
+      ...item._doc,
+      anime: cacheMap.get(item.animeId) || { title: { romaji: "Unknown" }, coverImage: "" }
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        username: user.username,
+        mainList: populatedMainList,
+        customLists: publicLists
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

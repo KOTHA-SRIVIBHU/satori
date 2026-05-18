@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import MyList from './pages/MyList';
 import ListView from './pages/ListView';
+import PublicProfile from './pages/PublicProfile';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/list" element={<MyList />} />
             <Route path="/lists/:id" element={<ListView />} />
+            <Route path="/profile/:username" element={<PublicProfile />} />
             {/* We will add more routes here soon */}
           </Routes>
         </main>
