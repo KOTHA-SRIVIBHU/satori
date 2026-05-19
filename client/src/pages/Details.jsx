@@ -146,7 +146,7 @@ const Details = () => {
     >
       {/* Cinematic Backdrop */}
       <div className="absolute top-0 left-0 w-full h-[70vh] -z-10 overflow-hidden">
-        <img src={anime.coverImage} className="w-full h-full object-cover blur-3xl opacity-20 scale-110" alt="" />
+        <img src={anime.coverImage} className="w-full h-full object-cover blur-3xl opacity-10 scale-110" alt="" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050507]/80 to-[#050507]" />
       </div>
 
@@ -239,9 +239,8 @@ const Details = () => {
                 <img 
                   src={anime.coverImage} 
                   alt="" 
-                  className="w-full h-auto rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10" 
+                  className="w-full h-auto rounded-2xl shadow-2xl border border-white/10" 
                 />
-                <div className="absolute -inset-4 bg-satori-accent/20 blur-3xl rounded-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               </div>
 
               <div className="mt-6 flex flex-wrap gap-2">
@@ -293,11 +292,11 @@ const Details = () => {
                     <div className="space-y-4">
                       <div>
                         <p className="text-[10px] font-bold text-satori-muted uppercase mb-1">Main Studio</p>
-                        <p className="font-bold text-lg">{anime.studios?.[0] || 'Unknown'}</p>
+                        <p className="font-bold text-lg text-white">{anime.studios?.[0] || 'Unknown'}</p>
                       </div>
                       <div>
                         <p className="text-[10px] font-bold text-satori-muted uppercase mb-1">Episodes / Duration</p>
-                        <p className="font-bold text-lg">{anime.episodes || '?'} ep • {anime.duration || '?'}m</p>
+                        <p className="font-bold text-lg text-white">{anime.episodes || '?'} ep • {anime.duration || '?'}m</p>
                       </div>
                     </div>
                  </div>
@@ -308,10 +307,10 @@ const Details = () => {
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {anime.tags?.slice(0, 8).map(tag => (
-                        <div key={tag.name} className="px-3 py-1.5 bg-satori-accent/5 border border-satori-accent/10 rounded-lg">
-                          <p className="text-[9px] font-black text-satori-accent uppercase tracking-wider">{tag.name}</p>
-                          <div className="w-full h-1 bg-satori-accent/10 rounded-full mt-1 overflow-hidden">
-                            <div className="h-full bg-satori-accent" style={{ width: `${tag.rank}%` }} />
+                        <div key={tag.name} className="px-3 py-1.5 bg-white/[0.03] border border-white/[0.08] rounded-lg">
+                          <p className="text-[9px] font-bold text-white uppercase tracking-wider">{tag.name}</p>
+                          <div className="w-full h-1 bg-white/5 rounded-full mt-1 overflow-hidden">
+                            <div className="h-full bg-white/40" style={{ width: `${tag.rank}%` }} />
                           </div>
                         </div>
                       ))}

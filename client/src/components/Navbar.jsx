@@ -21,7 +21,7 @@ const Navbar = () => {
       className="sticky top-0 z-[100] bg-[#050507]/60 backdrop-blur-xl border-b border-white/[0.05] px-8 py-4 flex items-center justify-between"
     >
       <Link to="/" className="group flex items-center gap-2">
-        <div className="w-8 h-8 bg-satori-accent rounded-lg flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.5)]">
+        <div className="w-8 h-8 bg-satori-accent rounded-lg flex items-center justify-center shadow-lg">
           <Zap size={18} className="text-white fill-current" />
         </div>
         <span className="text-xl font-black tracking-tighter bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent group-hover:from-satori-accent group-hover:to-blue-400 transition-all">
@@ -59,13 +59,13 @@ const Navbar = () => {
           <div className="flex items-center gap-3">
             <Link 
               to="/profile" 
-              className="p-2.5 bg-satori-accent/10 rounded-xl text-satori-accent hover:bg-satori-accent hover:text-white transition-all shadow-lg hover:shadow-satori-accent/20"
+              className="p-2.5 bg-white/5 border border-white/5 rounded-xl text-satori-accent hover:bg-satori-accent hover:text-white transition-all shadow-lg"
             >
               <User size={18} />
             </Link>
             <button 
               onClick={logout}
-              className="p-2.5 bg-red-500/10 rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all"
+              className="p-2.5 bg-red-500/5 border border-red-500/10 rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all"
             >
               <LogOut size={18} />
             </button>
@@ -73,7 +73,7 @@ const Navbar = () => {
         ) : (
           <Link 
             to="/login" 
-            className="flex items-center gap-2 px-4 py-2 bg-satori-accent text-white rounded-lg font-medium hover:bg-purple-600 transition-all shadow-lg shadow-satori-accent/20"
+            className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-lg font-bold hover:bg-white/90 transition-all shadow-lg"
           >
             <LogIn size={18} />
             <span>Login</span>
