@@ -96,9 +96,9 @@ const Home = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-satori-accent/10 border border-satori-accent/20 text-satori-accent text-[10px] font-black uppercase tracking-[0.2em] mb-6 shadow-[0_0_20px_rgba(139,92,246,0.15)]"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/10 text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-6"
           >
-            <Zap size={12} className="fill-current" /> Next-Gen Anime Intelligence
+            <Zap size={12} className="text-satori-accent" /> Next-Gen Anime Intelligence
           </motion.div>
           
           <motion.h1 
@@ -107,7 +107,7 @@ const Home = () => {
             className="text-6xl md:text-7xl font-[900] tracking-tight mb-6 bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent"
           >
             Decode Your <br />
-            <span className="text-satori-accent neon-glow">Anime DNA</span>
+            <span className="text-satori-accent">Anime DNA</span>
           </motion.h1>
           
           <motion.p 
@@ -125,16 +125,16 @@ const Home = () => {
             <input
               type="text"
               placeholder="Search across 10,000+ series..."
-              className="w-full bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-2xl py-5 px-8 pl-14 text-lg focus:outline-none focus:border-satori-accent/50 focus:bg-white/[0.05] transition-all shadow-[0_20px_50px_rgba(0,0,0,0.5)] placeholder:text-white/20"
+              className="w-full bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-2xl py-5 px-8 pl-14 text-lg focus:outline-none focus:border-white/20 focus:bg-white/[0.05] transition-all shadow-2xl placeholder:text-white/20"
               value={query}
               onChange={(e) => setQ(e.target.value)}
               onBlur={() => setTimeout(() => setSuggestions([]), 200)}
             />
-            <SearchIcon className="absolute left-6 top-6 text-white/20 group-focus-within:text-satori-accent transition-colors" size={24} />
+            <SearchIcon className="absolute left-6 top-6 text-white/20 group-focus-within:text-white/40 transition-colors" size={24} />
             
             <div className="absolute right-4 top-3 flex items-center gap-3">
               {isTyping && <Loader2 className="animate-spin text-satori-accent" size={20} />}
-              <button className="bg-satori-accent hover:bg-satori-accent/80 text-white px-8 py-2.5 rounded-xl transition-all font-black text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(139,92,246,0.3)]">
+              <button className="bg-white text-black hover:bg-white/90 px-8 py-2.5 rounded-xl transition-all font-black text-sm uppercase tracking-wider">
                 Analyze
               </button>
             </div>
@@ -173,7 +173,7 @@ const Home = () => {
         </div>
 
         {/* Decorative elements */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-satori-accent/10 blur-[120px] rounded-full -z-10" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-satori-accent/5 blur-[100px] rounded-full -z-10" />
       </section>
 
       {/* Main Content */}

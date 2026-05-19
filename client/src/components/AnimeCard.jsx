@@ -11,13 +11,13 @@ const AnimeCard = ({ anime, index }) => {
     >
       <Link 
         to={`/anime/${anime.id}`} 
-        className="group relative flex flex-col bg-white/[0.03] rounded-2xl overflow-hidden border border-white/[0.08] hover:border-satori-accent/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(139,92,246,0.1)] h-full"
+        className="group relative flex flex-col bg-white/[0.03] rounded-2xl overflow-hidden border border-white/[0.08] hover:border-white/20 transition-all duration-500 h-full shadow-lg"
       >
         <div className="relative aspect-[2/3] overflow-hidden">
           <img 
             src={anime.image} 
             alt={anime.title} 
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-transparent to-transparent opacity-80" />
           
@@ -37,7 +37,7 @@ const AnimeCard = ({ anime, index }) => {
           <div className="absolute bottom-3 left-3 right-3">
              <div className="flex flex-wrap gap-1.5">
               {anime.genres?.slice(0, 2).map(g => (
-                <span key={g} className="text-[9px] font-bold uppercase tracking-wider bg-satori-accent/20 backdrop-blur-md border border-satori-accent/30 px-2 py-0.5 rounded-md text-satori-accent">{g}</span>
+                <span key={g} className="text-[9px] font-bold uppercase tracking-wider bg-white/10 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-md text-white/60">{g}</span>
               ))}
             </div>
           </div>
