@@ -8,6 +8,8 @@ import Register from './pages/Register';
 import MyList from './pages/MyList';
 import ListView from './pages/ListView';
 import PublicProfile from './pages/PublicProfile';
+import Galaxy from './pages/Galaxy';
+import Analytics from './pages/Analytics';
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/list" element={<MyList />} />
+            <Route path="/galaxy" element={<Galaxy />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/lists/:id" element={<ListView />} />
             <Route path="/profile/:username" element={<PublicProfile />} />
             {/* We will add more routes here soon */}

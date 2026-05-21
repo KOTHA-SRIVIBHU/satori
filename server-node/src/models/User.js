@@ -12,7 +12,8 @@ const userSchema = new mongoose.Schema({
         enum: ["CURRENT", "PLANNING", "COMPLETED", "DROPPED", "PAUSED", "REPEATING"],
         default: "PLANNING"
       },
-      score: { type: Number, default: 0 }
+      score: { type: Number, default: 0 },
+      updatedAt: { type: Date, default: Date.now }
     }
   ],
   anilistId: String,

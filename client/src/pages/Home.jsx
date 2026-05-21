@@ -1,8 +1,8 @@
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import api from '../services/api';
+import api, { getRecommendations } from '../services/api';
 import AnimeCard from '../components/AnimeCard';
-import { Search as SearchIcon, Loader2, Zap, TrendingUp } from 'lucide-react';
+import { Search as SearchIcon, Loader2, Zap, TrendingUp, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 
@@ -14,32 +14,70 @@ const Home = () => {
   const [query, setQ] = useState(urlQuery);
   const [results, setResults] = useState([]);
   const [userList, setUserList] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [recLoading, setRecLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const navigate = useNavigate();
+
+  const enrichResults = (rawResults) => {
+    if (!rawResults || !Array.isArray(rawResults)) return [];
+    if (!user) return rawResults;
+    return rawResults.map(anime => {
+      const animeId = anime.id || anime._id;
+      const match = userList.find(item => item.animeId === animeId);
+      return match ? { ...anime, id: animeId, userScore: match.score, userStatus: match.status } : { ...anime, id: animeId };
+    });
+  };
 
   useEffect(() => {
     if (user) {
       const fetchUserList = async () => {
         try {
           const { data } = await api.get('/user/list');
-          setUserList(data.data);
+          setUserList(data.data || []);
         } catch (err) {
           console.error("Failed to fetch user list", err);
         }
       };
+      
+      const fetchRecs = async () => {
+        setRecLoading(true);
+        try {
+          const response = await getRecommendations();
+          if (response.success && response.data.length > 0) {
+            const recsWithDetails = await Promise.all(
+              response.data.map(async (rec) => {
+                try {
+                  const { data } = await api.get(`/anime/${rec.anime_id}`);
+                  const animeData = data.data;
+                  return { 
+                    ...animeData, 
+                    id: animeData._id || animeData.id, 
+                    image: animeData.coverImage, 
+                    year: animeData.startDate?.year, // Extract year correctly
+                    xai_reason: rec.xai_reason 
+                  };
+                } catch (e) {
+                  return null;
+                }
+              })
+            );
+            setRecommendations(recsWithDetails.filter(r => r !== null));
+          }
+
+        } catch (err) {
+          console.error("Failed to fetch recommendations", err);
+        } finally {
+          setRecLoading(false);
+        }
+      };
+
       fetchUserList();
+      fetchRecs();
     }
   }, [user]);
-
-  const enrichResults = (rawResults) => {
-    if (!user) return rawResults;
-    return rawResults.map(anime => {
-      const match = userList.find(item => item.animeId === anime.id);
-      return match ? { ...anime, userScore: match.score, userStatus: match.status } : anime;
-    });
-  };
 
   useEffect(() => {
     if (urlQuery.length > 2) {
@@ -58,7 +96,7 @@ const Home = () => {
     } else {
       setResults([]);
     }
-  }, [urlQuery, userList]);
+  }, [urlQuery, userList, user]);
 
   // Debounced Autocomplete
   useEffect(() => {
@@ -67,7 +105,7 @@ const Home = () => {
         setIsTyping(true);
         try {
           const { data } = await api.get(`/anime/search?q=${query}`);
-          setSuggestions(enrichResults(data.data.slice(0, 6)));
+          setSuggestions(enrichResults(data.data?.slice(0, 6)));
         } catch (err) {
           console.error("Autocomplete failed", err);
         } finally {
@@ -176,6 +214,38 @@ const Home = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-satori-accent/5 blur-[100px] rounded-full -z-10" />
       </section>
 
+      {/* Satori Intelligence: Top Picks */}
+      {user && (recommendations.length > 0 || recLoading) && (
+        <section className="px-8 max-w-7xl mx-auto mb-20 relative z-10">
+          <div className="flex items-center justify-between mb-8 border-b border-white/[0.05] pb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-6 bg-satori-accent rounded-full" />
+              <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
+                <Sparkles className="text-satori-accent" size={24} /> 
+                Satori's Intelligence: Top Picks for You
+              </h2>
+            </div>
+            <p className="text-[10px] font-black text-satori-muted uppercase tracking-[0.2em]">
+              AI-Generated Insights
+            </p>
+          </div>
+
+          {recLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="aspect-[2/3] bg-white/[0.03] rounded-2xl animate-pulse border border-white/5" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              {recommendations.map((anime, i) => (
+                <AnimeCard key={anime.id || anime._id} anime={anime} index={i} />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
       {/* Main Content */}
       <div className="px-8 max-w-7xl mx-auto relative z-10">
         <div className="flex items-center justify-between mb-8 border-b border-white/[0.05] pb-6">
@@ -202,7 +272,7 @@ const Home = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             {(results.length > 0 ? results : []).map((anime, i) => (
-              <AnimeCard key={anime.id} anime={anime} index={i} />
+              <AnimeCard key={anime.id || anime._id} anime={anime} index={i} />
             ))}
           </div>
         )}
