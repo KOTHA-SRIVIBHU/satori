@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAnimeDNA } from '../services/api';
 import { 
@@ -36,9 +36,10 @@ const GENRE_COLORS = {
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    const title = typeof data.title === 'object' ? (data.title.english || data.title.romaji) : data.title;
     return (
       <div className="bg-[#0d0d12]/90 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl max-w-[200px]">
-        <p className="font-black text-xs text-white uppercase tracking-wider mb-2">{data.title}</p>
+        <p className="font-black text-xs text-white uppercase tracking-wider mb-2">{title}</p>
         <div className="flex flex-wrap gap-1">
           {data.genres?.slice(0, 3).map(g => (
             <span 
@@ -58,19 +59,25 @@ const CustomTooltip = ({ active, payload }) => {
 
 const Galaxy = () => {
   const [allData, setAllData] = useState([]);
-  const [displayData, setDisplayData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [focusedCluster, setFocusedCluster] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [highlightedIds, setHighlightedIds] = useState([]);
   const navigate = useNavigate();
+  const searchRef = useRef(null);
 
   useEffect(() => {
     const fetchDNA = async () => {
       try {
         const response = await getAnimeDNA();
         if (response.success) {
-          setAllData(response.data);
-          setDisplayData(response.data);
+          // Normalize titles for search
+          const data = response.data.map(a => ({
+            ...a,
+            searchTitle: (typeof a.title === 'object' ? (a.title.english || a.title.romaji) : a.title).toLowerCase()
+          }));
+          setAllData(data);
         }
       } catch (err) {
         console.error("Failed to fetch Galaxy data", err);
@@ -82,42 +89,55 @@ const Galaxy = () => {
   }, []);
 
   const handlePointClick = (node) => {
-    // Determine the "Cluster" based on the primary genre
     const primaryGenre = node.genres?.[0];
     if (primaryGenre) {
-      const cluster = allData.filter(a => a.genres?.[0] === primaryGenre);
       setFocusedCluster({
         name: primaryGenre,
-        anime: cluster,
+        anime: allData.filter(a => a.genres?.[0] === primaryGenre),
         x: node.x,
         y: node.y
       });
-      setDisplayData(cluster);
+      setHighlightedIds([]);
+      setSearchQuery("");
     }
   };
 
   const resetFocus = () => {
     setFocusedCluster(null);
-    setDisplayData(allData);
+    setHighlightedIds([]);
     setSearchQuery("");
   };
 
-  const handleSearch = (e) => {
+  const handleSearchChange = (e) => {
     const q = e.target.value;
     setSearchQuery(q);
+    
     if (q.length > 2) {
-      const filtered = allData.filter(a => 
-        a.title.toLowerCase().includes(q.toLowerCase())
-      );
-      setDisplayData(filtered);
-    } else if (q.length === 0) {
-      setDisplayData(focusedCluster ? focusedCluster.anime : allData);
+      const filtered = allData.filter(a => a.searchTitle.includes(q.toLowerCase()));
+      setSuggestions(filtered.slice(0, 10));
+      setHighlightedIds(filtered.map(a => a.id));
+    } else {
+      setSuggestions([]);
+      setHighlightedIds([]);
     }
   };
 
-  const getPointColor = (genres) => {
-    if (!genres || genres.length === 0) return '#ffffff';
-    return GENRE_COLORS[genres[0]] || '#ffffff';
+  const selectSuggestion = (anime) => {
+    setHighlightedIds([anime.id]);
+    setSearchQuery(typeof anime.title === 'object' ? (anime.title.english || anime.title.romaji) : anime.title);
+    setSuggestions([]);
+    // Optionally focus the cluster of the selected anime
+    handlePointClick(anime);
+  };
+
+  const getPointOpacity = (entry) => {
+    if (highlightedIds.length === 0) return 0.8;
+    return highlightedIds.includes(entry.id) ? 1.0 : 0.1;
+  };
+
+  const getPointSize = (entry) => {
+    if (highlightedIds.length === 0) return 50;
+    return highlightedIds.includes(entry.id) ? 400 : 30;
   };
 
   return (
@@ -137,16 +157,41 @@ const Galaxy = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Galaxy Search */}
-            <div className="relative group hidden md:block">
-              <input
-                type="text"
-                placeholder="Find in Galaxy..."
-                value={searchQuery}
-                onChange={handleSearch}
-                className="bg-white/[0.03] border border-white/10 rounded-xl py-2 px-4 pl-10 text-sm focus:outline-none focus:border-satori-accent/50 w-64 transition-all"
-              />
-              <Search className="absolute left-3 top-2.5 text-white/20 group-focus-within:text-satori-accent transition-colors" size={16} />
+            {/* Smart Galaxy Search */}
+            <div className="relative group hidden md:block" ref={searchRef}>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Find in Galaxy..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="bg-white/[0.03] border border-white/10 rounded-xl py-2 px-4 pl-10 text-sm focus:outline-none focus:border-satori-accent/50 w-64 transition-all"
+                />
+                <Search className="absolute left-3 top-2.5 text-white/20 group-focus-within:text-satori-accent transition-colors" size={16} />
+              </div>
+
+              <AnimatePresence>
+                {suggestions.length > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute mt-2 w-full bg-[#0d0d12]/95 backdrop-blur-2xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[100]"
+                  >
+                    {suggestions.map((anime) => (
+                      <button
+                        key={anime.id}
+                        onClick={() => selectSuggestion(anime)}
+                        className="w-full text-left p-3 hover:bg-white/5 transition-colors border-b border-white/[0.05] last:border-0"
+                      >
+                        <p className="font-bold text-xs text-white truncate">
+                          {typeof anime.title === 'object' ? (anime.title.english || anime.title.romaji) : anime.title}
+                        </p>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             
             <div className="flex items-center gap-6 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-4">
@@ -154,7 +199,7 @@ const Galaxy = () => {
                 <span className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">
                   {focusedCluster ? 'Cluster Density' : 'Total Stars'}
                 </span>
-                <span className="text-xl font-black text-white">{displayData.length}</span>
+                <span className="text-xl font-black text-white">{focusedCluster ? focusedCluster.anime.length : allData.length}</span>
               </div>
               <div className="w-px h-8 bg-white/10" />
               <div className="text-[10px] font-medium text-white/60 max-w-[200px] leading-relaxed">
@@ -191,21 +236,24 @@ const Galaxy = () => {
 
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 40, right: 40, bottom: 40, left: 40 }}>
-                  <XAxis type="number" dataKey="x" hide domain={focusedCluster ? ['dataMin - 5', 'dataMax + 5'] : [0, 100]} />
-                  <YAxis type="number" dataKey="y" hide domain={focusedCluster ? ['dataMin - 5', 'dataMax + 5'] : [0, 100]} />
+                  <XAxis type="number" dataKey="x" hide domain={[0, 100]} />
+                  <YAxis type="number" dataKey="y" hide domain={[0, 100]} />
                   <ZAxis type="number" range={[50, 400]} />
                   <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'rgba(255,255,255,0.1)' }} />
                   <Scatter 
                     name="Anime" 
-                    data={displayData} 
+                    data={focusedCluster ? focusedCluster.anime : allData} 
                     onClick={handlePointClick}
                     style={{ cursor: 'pointer' }}
                   >
-                    {displayData.map((entry, index) => (
+                    {(focusedCluster ? focusedCluster.anime : allData).map((entry, index) => (
                       <Cell 
                         key={`cell-${index}`} 
-                        fill={getPointColor(entry.genres)} 
-                        className="filter drop-shadow-[0_0_8px_currentColor] opacity-80 hover:opacity-100 transition-opacity"
+                        fill={GENRE_COLORS[entry.genres?.[0]] || '#ffffff'} 
+                        opacity={getPointOpacity(entry)}
+                        className="filter drop-shadow-[0_0_8px_currentColor] transition-all duration-300"
+                        // Increase size if highlighted
+                        r={highlightedIds.includes(entry.id) ? 10 : 3}
                       />
                     ))}
                   </Scatter>
@@ -213,9 +261,9 @@ const Galaxy = () => {
               </ResponsiveContainer>
               
               {!focusedCluster && (
-                <div className="absolute bottom-8 right-8 flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 pointer-events-none">
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 pointer-events-none shadow-xl">
                   <Info size={14} className="text-satori-accent" />
-                  <span className="text-[10px] font-bold text-white/40">Click a star to focus its cluster.</span>
+                  <span className="text-[10px] font-bold text-white/40">Click a star to focus its cluster. Highlights show search matches.</span>
                 </div>
               )}
             </motion.div>
@@ -243,7 +291,11 @@ const Galaxy = () => {
                       <button 
                         key={anime.id}
                         onClick={() => navigate(`/anime/${anime.id}`)}
-                        className="w-full flex items-center gap-4 p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/[0.05] transition-all group text-left"
+                        className={`w-full flex items-center gap-4 p-3 rounded-2xl border transition-all group text-left ${
+                          highlightedIds.includes(anime.id) 
+                            ? 'bg-satori-accent/20 border-satori-accent/50' 
+                            : 'bg-white/5 border-white/[0.05] hover:bg-white/10'
+                        }`}
                       >
                         <div className="w-12 h-16 rounded-lg overflow-hidden bg-white/10 flex-shrink-0">
                           <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-white/20">

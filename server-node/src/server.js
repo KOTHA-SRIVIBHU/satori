@@ -32,6 +32,9 @@ async function seedPopularAnime() {
               format status genres averageScore description startDate { year month day }
               tags { name rank }
               popularity
+              studios(isMain: true) {
+                nodes { name }
+              }
             }
           }
         }
@@ -46,7 +49,8 @@ async function seedPopularAnime() {
             title: anime.title, coverImage: anime.coverImage.large, format: anime.format,
             status: anime.status, genres: anime.genres, averageScore: anime.averageScore,
             description: anime.description, startDate: anime.startDate,
-            tags: anime.tags, popularity: anime.popularity
+            tags: anime.tags, popularity: anime.popularity,
+            studios: anime.studios?.nodes?.map(n => n.name) || []
           },
           { upsert: true, returnDocument: 'after' }
         )

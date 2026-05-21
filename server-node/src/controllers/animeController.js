@@ -194,50 +194,98 @@ exports.getAnimeDetails = async (req, res) => {
 
 exports.getAnalytics = async (req, res) => {
   try {
-    // 1. Genre Popularity (Count per genre)
+    // 1. Genre Popularity (Count per genre) - Normalized Score
     const genrePopularity = await AnimeCache.aggregate([
       { $unwind: "$genres" },
-      { $group: { _id: "$genres", count: { $sum: 1 } } },
+      { 
+        $group: { 
+          _id: "$genres", 
+          count: { $sum: 1 },
+          avgScore: { $avg: "$averageScore" }
+        } 
+      },
       { $sort: { count: -1 } },
       { $limit: 10 }
     ]);
 
-    // 2. Score Trends by Decade
-    const scoreTrends = await AnimeCache.aggregate([
+    // 2. Studio Quality Leaders (Min 10 works, Top 15) - Normalized 0-10
+    const studioQuality = await AnimeCache.aggregate([
+      { $unwind: "$studios" },
+      { 
+        $group: { 
+          _id: "$studios", 
+          avgScore: { $avg: "$averageScore" },
+          count: { $sum: 1 }
+        } 
+      },
+      { $match: { count: { $gte: 10 } } }, 
+      { $sort: { avgScore: -1 } },
+      { $limit: 15 }
+    ]);
+
+    // 3. Genre Quality Spectrum - Normalized 0-10
+    const genreQuality = await AnimeCache.aggregate([
+      { $unwind: "$genres" },
+      { 
+        $group: { 
+          _id: "$genres", 
+          avgScore: { $avg: "$averageScore" }
+        } 
+      },
+      { $sort: { avgScore: -1 } },
+      { $limit: 12 }
+    ]);
+
+    // 4. Historical Genre Trends (Year-by-Year per Genre)
+    const historicalGenreTrends = await AnimeCache.aggregate([
+      { $unwind: "$genres" },
       { 
         $match: { 
-          "startDate.year": { $exists: true, $ne: null },
+          "startDate.year": { $exists: true, $ne: null, $gte: 2000 }, // Filter for modern era for density
           "averageScore": { $exists: true, $ne: null }
         } 
       },
       {
-        $project: {
-          decade: {
-            $subtract: [
-              "$startDate.year",
-              { $mod: ["$startDate.year", 10] }
-            ]
-          },
-          averageScore: 1
-        }
-      },
-      {
         $group: {
-          _id: "$decade",
-          avgScore: { $avg: "$averageScore" }
+          _id: { 
+            year: "$startDate.year", 
+            genre: "$genres" 
+          },
+          avgScore: { $avg: "$averageScore" },
+          count: { $sum: 1 }
         }
       },
-      { $sort: { _id: 1 } }
+      { $sort: { "_id.year": 1, "avgScore": -1 } }
     ]);
+
+    // Reformat historical trends for easier frontend charting
+    const yearMap = {};
+    historicalGenreTrends.forEach(item => {
+      const year = item._id.year;
+      const genre = item._id.genre;
+      if (!yearMap[year]) yearMap[year] = { year };
+      yearMap[year][genre] = Math.round(item.avgScore / 10 * 10) / 10;
+      yearMap[year][`${genre}_count`] = item.count;
+    });
 
     res.status(200).json({
       success: true,
       data: {
-        genrePopularity,
-        scoreTrends: scoreTrends.map(t => ({
-          decade: `${t._id}s`,
-          avgScore: Math.round(t.avgScore * 10) / 10
-        }))
+        genrePopularity: genrePopularity.map(g => ({
+          genre: g._id,
+          count: g.count,
+          avgScore: Math.round(g.avgScore / 10 * 10) / 10
+        })),
+        studioQuality: studioQuality.map(s => ({
+          studio: s._id,
+          avgScore: Math.round(s.avgScore / 10 * 10) / 10,
+          count: s.count
+        })),
+        genreQuality: genreQuality.map(g => ({
+          genre: g._id,
+          avgScore: Math.round(g.avgScore / 10 * 10) / 10
+        })),
+        historicalTrends: Object.values(yearMap)
       }
     });
   } catch (error) {
