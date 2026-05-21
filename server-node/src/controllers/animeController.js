@@ -191,3 +191,57 @@ exports.getAnimeDetails = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to fetch details" });
   }
 };
+
+exports.getAnalytics = async (req, res) => {
+  try {
+    // 1. Genre Popularity (Count per genre)
+    const genrePopularity = await AnimeCache.aggregate([
+      { $unwind: "$genres" },
+      { $group: { _id: "$genres", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // 2. Score Trends by Decade
+    const scoreTrends = await AnimeCache.aggregate([
+      { 
+        $match: { 
+          "startDate.year": { $exists: true, $ne: null },
+          "averageScore": { $exists: true, $ne: null }
+        } 
+      },
+      {
+        $project: {
+          decade: {
+            $subtract: [
+              "$startDate.year",
+              { $mod: ["$startDate.year", 10] }
+            ]
+          },
+          averageScore: 1
+        }
+      },
+      {
+        $group: {
+          _id: "$decade",
+          avgScore: { $avg: "$averageScore" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        genrePopularity,
+        scoreTrends: scoreTrends.map(t => ({
+          decade: `${t._id}s`,
+          avgScore: Math.round(t.avgScore * 10) / 10
+        }))
+      }
+    });
+  } catch (error) {
+    console.error("Analytics aggregation failed:", error);
+    res.status(500).json({ success: false, message: "Aggregation failed" });
+  }
+};

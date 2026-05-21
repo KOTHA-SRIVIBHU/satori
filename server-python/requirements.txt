@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+motor
+pydantic-settings
+pytest
+httpx
+pandas
+scikit-learn
+python-dotenv

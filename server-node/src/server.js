@@ -22,14 +22,16 @@ async function seedPopularAnime() {
 
   console.log(`🧠 Expanding Satori Knowledge Base (Currently ${count}/1000)...`);
   try {
-    const totalPages = 10; // 10 pages * 100 = 1000 anime
+    const totalPages = 20; // 20 pages * 50 = 1000 anime (let's use 50 per page for safety)
     for (let page = 1; page <= totalPages; page++) {
       const query = `
         query ($page: Int) {
-          Page(page: $page, perPage: 100) {
+          Page(page: $page, perPage: 50) {
             media(type: ANIME, sort: POPULARITY_DESC) {
               id title { english romaji } coverImage { large }
               format status genres averageScore description startDate { year month day }
+              tags { name rank }
+              popularity
             }
           }
         }
@@ -43,7 +45,8 @@ async function seedPopularAnime() {
           {
             title: anime.title, coverImage: anime.coverImage.large, format: anime.format,
             status: anime.status, genres: anime.genres, averageScore: anime.averageScore,
-            description: anime.description, startDate: anime.startDate
+            description: anime.description, startDate: anime.startDate,
+            tags: anime.tags, popularity: anime.popularity
           },
           { upsert: true, returnDocument: 'after' }
         )

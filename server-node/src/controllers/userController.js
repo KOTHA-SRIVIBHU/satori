@@ -98,7 +98,8 @@ exports.syncAniList = async (req, res) => {
       (list) => list.entries.map(entry => ({
         animeId: entry.mediaId,
         status: entry.status,
-        score: entry.score
+        score: entry.score,
+        updatedAt: new Date()
       }))
     );
 
@@ -223,12 +224,14 @@ exports.updateAnimeStatus = async (req, res) => {
       // Update existing entry
       if (status) user.animeList[animeIndex].status = status;
       if (score !== undefined) user.animeList[animeIndex].score = score;
+      user.animeList[animeIndex].updatedAt = Date.now();
     } else {
       // Add new entry
       user.animeList.push({
         animeId: Number(animeId),
         status: status || "PLANNING",
-        score: score || 0
+        score: score || 0,
+        updatedAt: Date.now()
       });
       
       // Trigger cache fetch if missing

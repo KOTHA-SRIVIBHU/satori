@@ -4,6 +4,7 @@ const morgan = require("morgan");
 const animeRoutes = require("./routes/animeRoutes");
 const userRoutes = require("./routes/userRoutes");
 const customListRoutes = require("./routes/customListRoutes");
+const recommendationRoutes = require("./routes/recommendationRoutes");
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use((req, res, next) => {
 app.use("/api/anime", animeRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/lists", customListRoutes);
+app.use("/api/recommend", recommendationRoutes);
 
 // 404 Handler
 app.use((req, res) => {

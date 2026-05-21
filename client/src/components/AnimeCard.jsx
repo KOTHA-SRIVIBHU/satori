@@ -3,14 +3,17 @@ import { motion } from 'framer-motion';
 import { Star, Calendar, Zap } from 'lucide-react';
 
 const AnimeCard = ({ anime, index }) => {
+  const animeId = anime.id || anime._id;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
+      className="h-full"
     >
       <Link 
-        to={`/anime/${anime.id}`} 
+        to={`/anime/${animeId}`} 
         className="group relative flex flex-col bg-white/[0.03] rounded-2xl overflow-hidden border border-white/[0.08] hover:border-white/20 transition-all duration-500 h-full shadow-lg"
       >
         <div className="relative aspect-[2/3] overflow-hidden">
@@ -34,6 +37,16 @@ const AnimeCard = ({ anime, index }) => {
             )}
           </div>
 
+          {/* XAI Reason Badge */}
+          {anime.xai_reason && (
+            <div className="absolute top-3 right-3 max-w-[70%]">
+              <div className="bg-satori-accent/80 backdrop-blur-md px-2 py-1 rounded-lg text-white text-[9px] font-black flex items-start gap-1.5 border border-white/20 shadow-xl leading-tight">
+                <Zap size={10} className="mt-0.5 shrink-0" fill="currentColor" /> 
+                <span>{anime.xai_reason}</span>
+              </div>
+            </div>
+          )}
+
           <div className="absolute bottom-3 left-3 right-3">
              <div className="flex flex-wrap gap-1.5">
               {anime.genres?.slice(0, 2).map(g => (
@@ -46,7 +59,10 @@ const AnimeCard = ({ anime, index }) => {
         <div className="p-4 flex-grow flex flex-col justify-between bg-gradient-to-b from-transparent to-white/[0.02]">
           <div>
             <h3 className="font-bold text-sm leading-tight line-clamp-2 group-hover:text-satori-accent transition-colors mb-2">
-              {anime.title}
+              {typeof anime.title === 'object' 
+                ? (anime.title.english || anime.title.romaji || 'Unknown Title') 
+                : (anime.title || 'Unknown Title')
+              }
             </h3>
             <div className="flex flex-wrap gap-1 mb-3">
               {anime.genres?.slice(0, 2).map(g => (

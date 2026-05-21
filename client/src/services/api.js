@@ -18,6 +18,21 @@ api.interceptors.request.use(
   }
 );
 
+export const getRecommendations = async () => {
+  const { data } = await api.get('/recommend');
+  return data;
+};
+
+export const getAnimeDNA = async () => {
+  const { data } = await api.get('/anime/dna');
+  return data;
+};
+
+export const getAnalytics = async () => {
+  const { data } = await api.get('/anime/analytics');
+  return data;
+};
+
 // Add a response interceptor to handle expired or invalid sessions
 api.interceptors.response.use(
   (response) => response,
