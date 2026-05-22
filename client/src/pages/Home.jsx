@@ -214,6 +214,30 @@ const Home = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-satori-accent/5 blur-[100px] rounded-full -z-10" />
       </section>
 
+      {/* Main Content (Discovery Results) - High Priority when searching */}
+      {results.length > 0 && (
+        <section className="px-8 max-w-7xl mx-auto mb-20 relative z-10">
+          <div className="flex items-center justify-between mb-8 border-b border-white/[0.05] pb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-6 bg-satori-accent rounded-full" />
+              <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
+                <TrendingUp className="text-satori-accent" size={24} /> 
+                Discovery Results
+              </h2>
+            </div>
+            <p className="text-xs font-bold text-satori-muted uppercase tracking-[0.2em]">
+              Showing {results.length} Entries
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            {results.map((anime, i) => (
+              <AnimeCard key={anime.id || anime._id} anime={anime} index={i} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Satori Intelligence: Top Picks */}
       {user && (recommendations.length > 0 || recLoading) && (
         <section className="px-8 max-w-7xl mx-auto mb-20 relative z-10">
@@ -222,11 +246,11 @@ const Home = () => {
               <div className="w-1.5 h-6 bg-satori-accent rounded-full" />
               <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
                 <Sparkles className="text-satori-accent" size={24} /> 
-                Satori's Intelligence: Top Picks for You
+                {results.length > 0 ? "You Might Also Like" : "Satori's Intelligence: Top Picks for You"}
               </h2>
             </div>
             <p className="text-[10px] font-black text-satori-muted uppercase tracking-[0.2em]">
-              AI-Generated Insights
+              {results.length > 0 ? "Extended Analysis" : "AI-Generated Insights"}
             </p>
           </div>
 
@@ -246,37 +270,40 @@ const Home = () => {
         </section>
       )}
 
-      {/* Main Content */}
-      <div className="px-8 max-w-7xl mx-auto relative z-10">
-        <div className="flex items-center justify-between mb-8 border-b border-white/[0.05] pb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-satori-accent rounded-full" />
-            <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
-              <TrendingUp className="text-satori-accent" size={24} /> 
-              {results.length > 0 ? 'Discovery Results' : 'Trending Map'}
-            </h2>
-          </div>
-          <p className="text-xs font-bold text-satori-muted uppercase tracking-[0.2em]">
-            Showing {results.length || 'Top'} Entries
-          </p>
-        </div>
-
-        {loading ? (
-          <div className="py-20 flex flex-col items-center justify-center gap-6">
-            <div className="relative">
-              <Loader2 className="animate-spin text-satori-accent" size={64} />
-              <div className="absolute inset-0 bg-satori-accent/20 blur-2xl rounded-full" />
+      {/* Default Trending Map (Only shown when NOT searching) */}
+      {results.length === 0 && (
+        <div className="px-8 max-w-7xl mx-auto relative z-10">
+          <div className="flex items-center justify-between mb-8 border-b border-white/[0.05] pb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-6 bg-satori-accent rounded-full" />
+              <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
+                <TrendingUp className="text-satori-accent" size={24} /> 
+                Trending Map
+              </h2>
             </div>
-            <p className="text-lg font-bold text-satori-muted animate-pulse">Syncing with Satori Intelligence...</p>
+            <p className="text-xs font-bold text-satori-muted uppercase tracking-[0.2em]">
+              Top Entries
+            </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {(results.length > 0 ? results : []).map((anime, i) => (
-              <AnimeCard key={anime.id || anime._id} anime={anime} index={i} />
-            ))}
-          </div>
-        )}
-      </div>
+
+          {loading ? (
+            <div className="py-20 flex flex-col items-center justify-center gap-6">
+              <div className="relative">
+                <Loader2 className="animate-spin text-satori-accent" size={64} />
+                <div className="absolute inset-0 bg-satori-accent/20 blur-2xl rounded-full" />
+              </div>
+              <p className="text-lg font-bold text-satori-muted animate-pulse">Syncing with Satori Intelligence...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              {/* This part would handle trending if we fetch it, for now it's empty when no query */}
+              <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-3xl">
+                <p className="text-satori-muted font-medium italic">Type above to begin neural discovery...</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
