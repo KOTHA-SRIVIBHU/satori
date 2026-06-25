@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from app.services.vectorizer import GENRES
+from app.services.vectorizer import ALL_TAGS
 from typing import List, Dict
 
 class RecommenderService:
@@ -64,8 +64,10 @@ class RecommenderService:
         return results[:limit]
 
     async def _get_cold_start_recommendations(self, limit: int):
+        score_idx = len(ALL_TAGS)
+        pop_idx = len(ALL_TAGS) + 1
         # Return high score/popularity anime
-        docs = await self.db["animemls"].find().sort([("feature_vector.19", -1), ("feature_vector.20", -1)]).to_list(length=limit)
+        docs = await self.db["animemls"].find().sort([(f"feature_vector.{score_idx}", -1), (f"feature_vector.{pop_idx}", -1)]).to_list(length=limit)
         return [{
             "anime_id": doc["anime_id"],
             "title": doc["title"],
@@ -74,20 +76,23 @@ class RecommenderService:
         } for doc in docs]
 
     def _generate_xai_reason(self, user_vector: np.array, anime_vector: np.array) -> str:
-        # Identify top contributing dimensions (genres)
-        # Genres are the first len(GENRES) elements
-        genre_overlaps = []
-        for i, genre_name in enumerate(GENRES):
-            if user_vector[i] > 0.2 and anime_vector[i] > 0.5:
-                genre_overlaps.append(genre_name)
+        # Identify top contributing dimensions (tags)
+        tag_overlaps = []
+        for i, tag_name in enumerate(ALL_TAGS):
+            # Since vectors are squared, 0.25 means a 50% tag, 0.49 means a 70% tag.
+            if user_vector[i] > 0.1 and anime_vector[i] > 0.4:
+                tag_overlaps.append((tag_name, min(user_vector[i], anime_vector[i])))
+                
+        # Sort by overlap score
+        tag_overlaps.sort(key=lambda x: x[1], reverse=True)
+        top_tags = [t[0] for t in tag_overlaps[:3]]
         
-        if not genre_overlaps:
+        if not top_tags:
             # Fallback to score/popularity
-            if anime_vector[19] > 0.8:
+            if anime_vector[-2] > 0.8:
                 return "Because it's highly rated among critics."
             return "Because it matches your overall taste patterns."
             
-        top_genres = genre_overlaps[:3]
-        if len(top_genres) == 1:
-            return f"Because you enjoy {top_genres[0]} anime."
-        return f"Because you enjoy {' and '.join([', '.join(top_genres[:-1]), top_genres[-1]])} series."
+        if len(top_tags) == 1:
+            return f"Because you enjoy themes like {top_tags[0]}."
+        return f"Because it explores themes like {' and '.join([', '.join(top_tags[:-1]), top_tags[-1]])}."

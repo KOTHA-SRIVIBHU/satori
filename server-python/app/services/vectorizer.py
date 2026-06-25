@@ -2,31 +2,18 @@ import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.core.config import settings
 
-TOP_TAGS = ['Male Protagonist', 'Heterosexual', 'Tragedy', 'Female Protagonist', 'School', 'Ensemble Cast', 'Primarily Teen Cast', 'Shounen', 'Urban Fantasy', 'Kuudere', 'Super Power', 'Coming of Age', 'Gore', 'Nudity', 'Urban', 'Tsundere', 'Primarily Adult Cast', 'Philosophy', 'Anti-Hero', 'Swordplay', 'CGI', 'Magic', 'Love Triangle', 'Primarily Female Cast', 'Female Harem', 'Revenge', 'Slapstick', 'Primarily Male Cast', 'Body Horror', 'Demons', 'Guns', 'Unrequited Love', 'Episodic', 'School Club', 'Travel', 'Time Skip', 'Seinen', 'Politics', 'Medieval', 'Gods', 'Conspiracy', 'Found Family', 'Tomboy', 'Bullying', 'War', 'LGBTQ+ Themes', 'Crime', 'Suicide', 'Time Manipulation', 'Isekai']
-
-GENRES = [
-    "Action", "Adventure", "Comedy", "Drama", "Fantasy", 
-    "Horror", "Mahou Shoujo", "Mecha", "Music", "Mystery", 
-    "Psychological", "Romance", "Sci-Fi", "Slice of Life", 
-    "Sports", "Supernatural", "Thriller", "Ecchi", "Hentai"
-]
+ALL_TAGS = ['Clone', 'Primarily Animal Cast', 'Kids', 'Anal Sex', 'Shoujo', 'Femdom', 'Primarily Adult Cast', 'Fake Relationship', 'Aromantic', 'Creature Taming', 'Biographical', 'Baseball', 'Scuba Diving', 'Oiran', 'Tentacles', 'Aviation', 'Tsundere', 'Mafia', 'Full CGI', 'Adoption', 'Jazz Music', 'Coastal', 'Aliens', 'Alchemy', 'Shogi', 'Dragons', 'Time Loop', 'Male Harem', 'Super Power', 'Urban Fantasy', 'Family Life', 'Tanned Skin', 'Male Protagonist', 'Space Opera', 'Urban', 'Bowling', 'Time Skip', 'Poker', 'Surreal Comedy', 'Ancient China', 'Afterlife', 'Indigenous Cultures', 'Circus', 'Magic', 'Mixed Gender Harem', 'Youkai', 'Matriarchy', 'Age Regression', 'Flat Chest', 'Cute Boys Doing Cute Things', 'Femboy', 'Ero Guro', 'Rotoscoping', 'Monster Girl', 'Work', 'Hip-hop Music', 'Acrobatics', 'Office', 'Mermaid', 'Agender', 'Alternate Universe', 'Rakugo', 'Gore', 'Slavery', 'Gangs', 'Classical Music', 'Rugby', 'Snowscape', 'Space', 'Chimera', 'Cute Girls Doing Cute Things', 'Historical', 'Go', 'Puppetry', 'Body Image', 'Polyamorous', 'Cultivation', 'Kabuki', 'Homeless', 'Classic Literature', 'Robots', 'Maids', 'Military', 'Incest', 'Anthology', 'Butler', 'Cyberpunk', 'Teacher', 'Food', 'Otaku Culture', 'Handjob', 'Acting', 'Samurai', 'Angels', 'Slapstick', 'VTuber', 'Cheerleading', 'Defloration', 'Fairy Tale', 'Human Experimentation', 'Demons', 'Achronological Order', 'Band', 'Boxing', 'Psychosexual', 'Rural', 'Interspecies', 'Guns', 'Flash', 'LGBTQ+ Themes', 'Golf', 'Succubus', 'Airsoft', 'Sweat', 'Monster Boy', 'Vore', 'Scat', 'Irrumatio', 'Masochism', 'Female Harem', 'Virginity', 'Advertisement', 'Reverse Isekai', 'Orphan', 'Time Manipulation', 'Unrequited Love', 'Anthropomorphism', 'Crime', 'Centaur', 'Judo', 'Witch', 'Squirting', 'Royal Affairs', 'Photography', 'Environmental', 'Noir', 'Konbini', 'Calligraphy', 'Threesome', 'Mythology', 'Elderly Protagonist', 'College', 'School Club', 'Gods', 'Bullying', 'Real Robot', 'Archery', 'Battle Royale', 'War', 'Tennis', 'Goblin', 'Ensemble Cast', 'Ahegao', 'Conspiracy', 'Disability', 'Criminal Organization', 'Makeup', 'Animals', 'Mixed Media', 'Shapeshifting', 'Eco-Horror', 'Masturbation', 'Fitness', 'Crossover', 'Outdoor Activities', 'Human Pet', 'Volleyball', 'Yandere', 'Isekai', 'Exorcism', 'Age Gap', 'Proxy Battle', 'Josei', 'Anti-Hero', 'Super Robot', 'Denpa', 'Natural Disaster', 'Feet', 'Superhero', 'Yuri', 'Language Barrier', 'Medieval', 'Tokusatsu', 'Cyborg', 'Arranged Marriage', 'Mahjong', 'MILF', 'POV', 'Episodic', 'Camping', 'Estranged Family', 'Fugitive', 'Futanari', 'Achromatic', 'Satire', 'Fairy', 'Crossdressing', 'Drugs', 'Body Swapping', 'Drawing', 'Inn', 'Economics', 'E-Sports', 'Cunnilingus', 'Gyaru', 'Found Family', 'Video Games', 'Cannibalism', 'Gambling', 'Cycling', 'Espionage', 'Chibi', 'Elf', 'Karuta', 'Heterosexual', 'Large Breasts', 'Tragedy', 'Prison', 'Virtual World', 'Mopeds', 'Artificial Intelligence', 'Politics', 'Motorcycles', 'Public Sex', 'Ballet', 'Pandemic', 'Firefighters', 'Boobjob', 'Marriage', 'Prostitution', 'Vocal Synth', 'Office Lady', 'Revenge', 'Rape', 'Swimming', 'Amputation', 'Skeleton', 'Modeling', 'Ships', 'Dissociative Identities', 'Dullahan', 'Primarily Teen Cast', 'Assassins', 'Idol', 'Parody', '4-koma', 'Dystopian', 'Surfing', 'Facial', 'Post-Apocalyptic', 'Cohabitation', 'Foreign', 'Fencing', 'Cheating', 'Chuunibyou', 'Trains', 'Desert', 'Ghost', 'Dinosaurs', 'Ojou-sama', 'Torture', 'Bisexual', 'Nakadashi', 'Ice Skating', 'Kaiju', 'Pirates', 'Spearplay', "Boys' Love", 'Manzai', 'Mountaineering', 'Bondage', 'Shrine Maiden', 'Parenthood', 'Board Game', 'Class Struggle', 'Suicide', 'Cowboys', 'Vampire', 'Henshin', 'Terrorism', 'Bar', 'Musical Theater', 'Primarily Child Cast', 'Cosplay', 'Wuxia', 'Asexual', 'Writing', 'Football', 'School', 'Meta', 'Basketball', 'Shounen', 'Primarily Male Cast', 'Dungeon', 'Curses', 'Travel', 'Philosophy', 'Kuudere', 'Lost Civilization', 'Zombie', 'Augmented Reality', 'Agriculture', 'Lactation', 'Kingdom Management', 'Asphyxiation', 'Educational', 'Necromancy', 'Exhibitionism', 'Fishing', 'Werewolf', 'Group Sex', 'Memory Manipulation', 'Hypersexuality', 'Skateboarding', 'Coming of Age', 'Rescue', 'Body Horror', 'Autobiographical', 'Matchmaking', 'Steampunk', 'Nun', 'Badminton', 'Swordplay', 'Death Game', 'Reincarnation', 'Martial Arts', 'Parkour', 'Kemonomimi', 'Boarding School', 'Rehabilitation', 'Filmmaking', 'Yakuza', 'Primarily Female Cast', 'Cosmic Horror', 'Hikikomori', 'Fashion', 'Rock Music', 'Transgender', 'Dancing', 'Love Triangle', 'Pregnancy', 'Survival', 'Restaurant', 'Delinquents', 'Triads', 'Detective', 'Inseki', 'Female Protagonist', 'Sumo', 'CGI', 'Cars', 'Tomboy', 'Gender Bending', 'Seinen', 'Nekomimi', 'Amnesia', 'Nudity', 'Twins', 'Veterinarian', 'Iyashikei', 'Medicine', 'Wrestling', 'Blackmail', 'Cult', 'Watersports', 'Police', 'Software Development', 'Card Battle', 'Ninja', 'Religion', 'Sadism', 'Athletics', 'Netorare', 'Astronomy', 'Anachronism', 'Villainess', 'Table Tennis', 'Tanks', 'Horticulture', 'Fellatio', 'Vikings', 'Wilderness']
 
 class VectorizerService:
     @staticmethod
     def vectorize(anime):
-        # 1. Multi-hot Genre Encoding (19 dim)
-        genre_vector = [1.0 if g in anime.genres else 0.0 for g in GENRES]
-        
-        # 2. Weighted Tag Encoding (50 dim)
-        # Using .name and .rank attributes since pydantic converts them to objects
         tag_dict = {tag.name: tag.rank for tag in anime.tags}
-        tag_vector = [tag_dict.get(t, 0.0) / 100.0 for t in TOP_TAGS]
+        # Square the weight to heavily emphasize primary/defining tags (90%+) over minor tags (40%)
+        tag_vector = [(tag_dict.get(t, 0.0) / 100.0) ** 2 for t in ALL_TAGS]
         
-        # 3. Score Normalization (1 dim)
         score_norm = (anime.averageScore or 0) / 100.0
-        
-        # 4. Popularity Normalization (1 dim)
         pop_norm = min((anime.popularity or 0) / 1000000.0, 1.0)
         
-        vector = genre_vector + tag_vector + [score_norm, pop_norm]
+        # Drop genres completely as requested, rely only on squared tag weights
+        vector = tag_vector + [score_norm, pop_norm]
         return vector
