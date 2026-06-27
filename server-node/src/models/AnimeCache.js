@@ -34,6 +34,22 @@ const animeSchema = new mongoose.Schema({
       name: String
     }
   ],
+  relations: [
+    {
+      relationType: String,
+      node: {
+        id: Number,
+        type: { type: String }, // 'type' is a reserved mongoose keyword so we wrap it
+        format: String,
+        title: {
+          english: String,
+          romaji: String
+        },
+        status: String
+      }
+    }
+  ],
+  hasRelations: { type: Boolean, default: false },
   createdAt: {
     type: Date,
     default: Date.now,

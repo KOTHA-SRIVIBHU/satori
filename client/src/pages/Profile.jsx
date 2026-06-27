@@ -1,17 +1,31 @@
 import { useState, useContext, useEffect } from 'react';
-import api from '../services/api';
-import { RefreshCw, CheckCircle2, AlertCircle, User as UserIcon, Share2 } from 'lucide-react';
+import api, { analyzeDNA } from '../services/api';
+import { RefreshCw, CheckCircle2, AlertCircle, User as UserIcon, Share2, Zap } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // Import axios for offline AniList query
+import axios from 'axios';
 
 const Profile = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [anilistUser, setAnilistUser] = useState("");
-  const [status, setStatus] = useState("idle"); // idle, loading, success, error
+  const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
+  const [dnaResult, setDnaResult] = useState(null);
+  const [dnaLoading, setDnaLoading] = useState(false);
+
+  const handleAnalyzeDNA = async () => {
+    setDnaLoading(true);
+    try {
+      const result = await analyzeDNA();
+      setDnaResult(result.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDnaLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (user && user.anilistId) {
@@ -142,6 +156,42 @@ const Profile = () => {
             </div>
           )}
         </div>
+        {user && (
+          <div className="max-w-md mx-auto mt-8 bg-satori-dark/50 p-6 rounded-2xl border border-white/5 text-left relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF2A55]/10 rounded-full blur-[50px] pointer-events-none" />
+            <h2 className="text-xl font-black mb-1 flex items-center gap-2 tracking-tight text-white">
+              <Zap size={20} className="text-[#FF2A55]" /> Anime DNA Analyzer
+            </h2>
+            <p className="text-[11px] text-satori-muted mb-6 leading-relaxed">
+              Run Satori's neural clustering engine on your watch history to discover your core anime archetype.
+            </p>
+
+            {dnaResult ? (
+              <div className="bg-white/[0.03] border border-[#FF2A55]/20 p-5 rounded-xl shadow-lg shadow-[#FF2A55]/5">
+                <div className="inline-block px-2 py-1 bg-[#FF2A55]/10 text-[#FF2A55] text-[9px] font-black uppercase tracking-widest rounded mb-3">
+                  Cluster #{dnaResult.cluster_id}
+                </div>
+                <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60 mb-2 leading-tight">
+                  {dnaResult.persona}
+                </h3>
+                <p className="text-sm font-medium text-white/70 leading-relaxed mb-4">
+                  "{dnaResult.description}"
+                </p>
+                <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest border-t border-white/5 pt-3">
+                  Analyzed {dnaResult.total_watched} Neural Nodes
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={handleAnalyzeDNA}
+                disabled={dnaLoading}
+                className="w-full bg-gradient-to-r from-[#FF2A55] to-[#B82E8A] hover:opacity-90 text-white font-black py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(255,42,85,0.3)] flex items-center justify-center gap-2 text-sm uppercase tracking-wider"
+              >
+                {dnaLoading ? <RefreshCw className="animate-spin" size={18} /> : "Extract Persona"}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

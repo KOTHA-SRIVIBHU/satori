@@ -23,8 +23,23 @@ export const getRecommendations = async () => {
   return data;
 };
 
+export const analyzeDNA = async () => {
+  const { data } = await api.post('/dna/analyze');
+  return data;
+};
+
 export const getAnimeDNA = async () => {
   const { data } = await api.get('/anime/dna');
+  return data;
+};
+
+export const getSeasonalTrends = async () => {
+  const { data } = await api.get('/trend/seasonal');
+  return data;
+};
+
+export const predictHypothetical = async (payload) => {
+  const { data } = await api.post('/trend/hypothetical', payload);
   return data;
 };
 

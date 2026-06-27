@@ -7,4 +7,5 @@ httpx
 pandas
 scikit-learn
 python-dotenv
-uvicorn
+google-genai
+groq

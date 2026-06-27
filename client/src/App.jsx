@@ -10,6 +10,8 @@ import ListView from './pages/ListView';
 import PublicProfile from './pages/PublicProfile';
 import Galaxy from './pages/Galaxy';
 import Analytics from './pages/Analytics';
+import TrendPredictor from './pages/TrendPredictor';
+import InsightEngine from './pages/InsightEngine';
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
             <Route path="/list" element={<MyList />} />
             <Route path="/galaxy" element={<Galaxy />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/trends" element={<TrendPredictor />} />
+            <Route path="/insights" element={<InsightEngine />} />
             <Route path="/lists/:id" element={<ListView />} />
             <Route path="/profile/:username" element={<PublicProfile />} />
             {/* We will add more routes here soon */}

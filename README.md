@@ -1,90 +1,92 @@
-# 🌌 SATORI: Next-Gen Anime Intelligence Engine
+# SATORI 🧠✨
+**The AI-Native Anime Discovery & Intelligence Engine**
 
-[![Live Demo](https://img.shields.io/badge/demo-live-blueviolet?style=for-the-badge)](https://satori-five-sage.vercel.app/)
-[![Backend](https://img.shields.io/badge/Backend-Render-green?style=for-the-badge)](https://satori-vbj0.onrender.com)
-[![Database](https://img.shields.io/badge/Database-MongoDB_Atlas-white?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
-
-**Satori** is a cinematic, AI-native anime discovery and management platform built for the modern enthusiast. It transcends traditional listing sites by offering a high-performance, persistent intelligence layer that maps your viewing journey across the global anime ecosystem.
+Satori is a next-generation platform built to map, analyze, and discover the universe of anime. Unlike traditional trackers, Satori uses Machine Learning to understand the "DNA" of every series, providing spatial visualizations and explainable AI recommendations.
 
 ---
 
 ## 🚀 Key Features
 
-### 🧠 Intelligence & Caching
-- **Hybrid Knowledge Base:** Pre-seeded with the Top 1,000 global series for instantaneous discovery and reduced API latency.
-- **JIT (Just-In-Time) Sync:** Proprietary batch-fetching logic that retrieves niche intelligence from AniList on-the-fly, ensuring zero "Unknown Entries."
-- **Persistent Memory:** Fully persistent production environment powered by MongoDB Atlas.
+### 1. **The Anime Galaxy (Spatial UI)**
+Explore 1,000+ anime in a 2D star map. Using **UMAP dimensionality reduction**, Satori clusters similar anime together based on 71 unique data dimensions. 
+- **Interactive Clusters:** Click any star to focus on a genre neighborhood.
+- **Smart Search:** Highlight matching anime across the entire universe in real-time.
 
-### 🔐 Security & Personalization
-- **JWT Architecture:** Secure, token-based authentication with industry-standard `bcrypt` password hashing.
-- **Universal Status Engine:** Seamlessly manage "Watching," "Planning," and "Completed" states directly from any entry point.
-- **Personal Rating System:** A custom 1-10 scoring layer that dynamically enriches your search results and public profiles.
+### 2. **Satori's Intelligence (Explainable AI)**
+Get personalized recommendations that evolve with you.
+- **Dynamic Taste Vectors:** The engine analyzes your **10 most recently watched** anime to shift recommendations instantly.
+- **XAI Badges:** Don't just get a score—understand *why* an anime was picked (e.g., *"Because you enjoy Action and Fantasy series"*).
 
-### 🌐 Social Intelligence
-- **Public Profiles:** Unique, shareable verified profile links (e.g., `/profile/Vibhu`) to showcase your entire collection.
-- **Custom Set Lists:** Curate, name, and share targeted collections of anime with distinct privacy controls.
-- **Smart Toggle:** Intuitive collection management with real-time indicators for existing entries.
-
-### 🎨 Cinematic Experience
-- **Minimalist Dark UI:** A refined, high-contrast aesthetic designed to put the focus on the artwork and metadata.
-- **URL-Based State:** Deep-linking and state persistence ensure that browser navigation (Back/Forward) always preserves your specific filters and search queries.
+### 3. **Global Analytics (Macro Intelligence)**
+A data science dashboard visualizing industry-wide trends.
+- **Studio Quality Leaders:** Ranks production houses by average critical reception.
+- **Yearly Genre Evolution:** High-resolution trends showing how genre quality has shifted year-by-year since 2000.
 
 ---
 
-## 🛠 Tech Stack
+## 🏗️ Architecture
 
-| Tier | Technologies |
+Satori uses a **Microservice Architecture** to combine the speed of Node.js with the mathematical power of Python.
+
+- **Frontend:** React (Vite) + Tailwind CSS + Framer Motion + Recharts.
+- **Gateway (server-node):** Node.js & Express. Handles Authentication (JWT), Database proxying, and AniList API synchronization.
+- **ML Brain (server-python):** FastAPI service. Handles Feature Engineering (71D vectors), Cosine Similarity, and UMAP projections.
+- **Database:** MongoDB Atlas (Global Cloud Cluster).
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
 | :--- | :--- |
-| **Frontend** | React 19, Vite, Tailwind CSS, Framer Motion, Lucide Icons, Axios |
-| **Backend** | Node.js, Express, JSON Web Tokens (JWT), Bcrypt.js, Morgan |
-| **Database** | MongoDB Atlas, Mongoose ODM |
-| **Search** | Fuse.js (Local Fuzzy Search), GraphQL (AniList API Integration) |
-| **Deployment** | Vercel (Frontend), Render (Backend) |
+| **Backend (ML)** | Python, FastAPI, Scikit-Learn, UMAP, Motor |
+| **Backend (API)** | Node.js, Express, Mongoose, Axios |
+| **Frontend** | React 19, Recharts, Framer Motion, Lucide Icons |
+| **Styling** | Tailwind CSS (Cinematic Dark Theme) |
+| **DevOps** | Render (Deployment), GitHub, Virtual Environments |
 
 ---
 
-## 📦 Deployment & Configuration
+## 📥 Local Setup
 
-### Backend Environment Variables
-To run the intelligence gateway, the following `.env` parameters are required:
+### 1. Prerequisites
+- Node.js (v18+)
+- Python (3.10+)
+- MongoDB Atlas account
+
+### 2. Clone and Install
+```bash
+git clone https://github.com/KOTHA-SRIVIBHU/satori.git
+cd satori
+```
+
+### 3. Environment Configuration
+Create `.env` files in `server-node/` and `server-python/`:
+
+**server-node/.env:**
 ```env
-MONGODB_URI=your_mongodb_atlas_uri
-JWT_SECRET=your_ultra_secure_secret
 PORT=5000
+MONGODB_URI=your_mongo_uri
+JWT_SECRET=your_secret
+PYTHON_SERVICE_URL=http://localhost:8000
 ```
 
-### Frontend Configuration
-Update `client/src/services/api.js` with your production endpoint:
-```javascript
-const api = axios.create({
-  baseURL: 'https://your-api-url.onrender.com/api',
-});
+**server-python/.env:**
+```env
+MONGODB_URI=your_mongo_uri
+DATABASE_NAME=satori
 ```
 
----
-
-## 🛰 API Endpoints
-
-### User Intelligence
-- `POST /api/user/register` - Initialize new intelligence profile.
-- `POST /api/user/login` - Authenticate and retrieve session token.
-- `POST /api/user/sync-anilist` - Synchronize global AniList data to local persistent storage.
-- `POST /api/user/status-update` - Modify anime status or personal rating.
-
-### Collection Management
-- `GET /api/lists/my` - Fetch owner's custom collections.
-- `POST /api/lists/add` - Append entry to a collection.
-- `DELETE /api/lists/:id` - Purge an entire collection.
-
----
-
-## 🤝 Contributing
-Contributions to the Satori Intelligence Engine are welcome. Please ensure that all UI modifications adhere to the established "Minimalist-Dark" aesthetic and that new backend routes are protected by the `protect` middleware.
+### 4. Running the Project
+- **Backend (Node):** `cd server-node && npm install && npm start`
+- **Backend (Python):** `cd server-python && source venv/bin/activate && pip install -r requirements.txt && uvicorn app.main:app --reload`
+- **Frontend:** `cd client && npm install && npm run dev`
 
 ---
 
 ## 📄 License
-This project is licensed under the ISC License.
+This project is part of the Satori AI Research initiative. All rights reserved.
 
 ---
-*Built with ❤️ for the global anime community.*
+
+**Built with ❤️ for the Anime Community.**
