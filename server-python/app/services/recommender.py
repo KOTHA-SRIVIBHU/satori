@@ -9,8 +9,12 @@ class RecommenderService:
         self.db = db
 
     async def get_recommendations(self, user_id: str, limit: int = 10):
+        from bson import ObjectId
         # 1. Fetch User
-        user = await self.db["users"].find_one({"_id": user_id})
+        try:
+            user = await self.db["users"].find_one({"_id": ObjectId(user_id)})
+        except:
+            user = None
         if not user:
             user = await self.db["users"].find_one() # Fallback for demo
             

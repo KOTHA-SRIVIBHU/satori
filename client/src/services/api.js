@@ -23,6 +23,11 @@ export const getRecommendations = async () => {
   return data;
 };
 
+export const analyzeDNA = async () => {
+  const { data } = await api.post('/dna/analyze');
+  return data;
+};
+
 export const getAnimeDNA = async () => {
   const { data } = await api.get('/anime/dna');
   return data;
