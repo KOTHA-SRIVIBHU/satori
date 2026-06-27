@@ -1,4 +1,4 @@
-import { Search, User, BarChart3, Zap, LogOut, LogIn, Sparkles, TrendingUp } from 'lucide-react';
+import { Search, User, BarChart3, Zap, LogOut, LogIn, Sparkles, TrendingUp, Bot } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useContext } from 'react';
@@ -12,7 +12,8 @@ const Navbar = () => {
     { path: '/', icon: Search, label: 'Explorer' },
     { path: '/list', icon: BarChart3, label: 'My List' },
     { path: '/galaxy', icon: Sparkles, label: 'Anime Galaxy' },
-    { path: '/trends', icon: TrendingUp, label: 'Most Anticipated' },
+    { path: '/trends', icon: Zap, label: 'Most Anticipated' },
+    { path: '/insights', icon: Bot, label: 'Insight Engine' },
     { path: '/analytics', icon: TrendingUp, label: 'Global Analytics' },
   ];
 
