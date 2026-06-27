@@ -10,8 +10,9 @@ const Navbar = () => {
 
   const navLinks = [
     { path: '/', icon: Search, label: 'Explorer' },
-    { path: '/list', icon: BarChart3, label: 'My List' }, // Changed Analytics to My List for now
+    { path: '/list', icon: BarChart3, label: 'My List' },
     { path: '/galaxy', icon: Sparkles, label: 'Anime Galaxy' },
+    { path: '/trends', icon: TrendingUp, label: 'Most Anticipated' },
     { path: '/analytics', icon: TrendingUp, label: 'Global Analytics' },
   ];
 

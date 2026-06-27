@@ -115,7 +115,7 @@ exports.getAnimeDetails = async (req, res) => {
 
     // If anime exists but is missing "Deep Metadata" (from a previous search cache), 
     // we continue to fetch it from the API to fill the gaps.
-    if (anime && anime.studios && anime.studios.length > 0) {
+    if (anime && anime.studios && anime.studios.length > 0 && anime.hasRelations) {
       return res.status(200).json({ success: true, data: anime, source: "cache" });
     }
 
@@ -145,6 +145,18 @@ exports.getAnimeDetails = async (req, res) => {
               role
               node {
                 name { full }
+              }
+            }
+          }
+          relations {
+            edges {
+              relationType
+              node {
+                id
+                type
+                format
+                status
+                title { english romaji }
               }
             }
           }
@@ -180,7 +192,21 @@ exports.getAnimeDetails = async (req, res) => {
         staff: data.staff.edges.map(edge => ({
           role: edge.role,
           name: edge.node.name.full
-        }))
+        })),
+        relations: data.relations.edges.map(edge => ({
+          relationType: edge.relationType,
+          node: {
+            id: edge.node.id,
+            type: edge.node.type,
+            format: edge.node.format,
+            status: edge.node.status,
+            title: {
+              english: edge.node.title?.english,
+              romaji: edge.node.title?.romaji
+            }
+          }
+        })),
+        hasRelations: true
       },
       { upsert: true, returnDocument: 'after' }
     );

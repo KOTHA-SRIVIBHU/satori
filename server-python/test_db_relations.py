@@ -5,8 +5,8 @@ from app.core.config import settings
 async def main():
     c = AsyncIOMotorClient(settings.MONGODB_URI)
     d = c[settings.DATABASE_NAME]
-    doc = await d["animes"].find_one()
+    doc = await d["animecaches"].find_one({"_id": 101922})
     import pprint
-    pprint.pprint(doc)
+    pprint.pprint(doc.get("relations"))
 
 asyncio.run(main())

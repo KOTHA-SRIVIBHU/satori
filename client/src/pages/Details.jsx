@@ -133,8 +133,8 @@ const Details = () => {
       icon: Calendar, 
       color: 'text-satori-accent' 
     },
-    { label: 'Status', value: anime.status, icon: Tv, color: 'text-green-400' },
-    { label: 'Score', value: `${anime.averageScore}%`, icon: Star, color: 'text-yellow-500' },
+    { label: 'Status', value: anime.status?.replace(/_/g, ' '), icon: Tv, color: 'text-green-400' },
+    { label: 'Score', value: `${anime.averageScore || '??'}%`, icon: Star, color: 'text-yellow-500' },
     { label: 'Popularity', value: anime.popularity?.toLocaleString(), icon: Users, color: 'text-blue-400' },
   ];
 
@@ -250,6 +250,29 @@ const Details = () => {
                   </span>
                 ))}
               </div>
+
+              {/* DNA Markers (All Tags) */}
+              <div className="mt-8 pt-6 border-t border-white/10">
+                <h3 className="text-xs font-black text-satori-accent uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <Zap size={14} /> DNA Markers
+                </h3>
+                <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                  {anime.tags?.map(tag => (
+                    <div key={tag.name} className="px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl w-full">
+                      <div className="flex justify-between items-center mb-1.5 text-[9px] font-bold uppercase tracking-widest">
+                        <span className="text-white truncate pr-2">{tag.name}</span>
+                        <span className="text-satori-accent shrink-0">{tag.rank}%</span>
+                      </div>
+                      <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-white/40" style={{ width: `${tag.rank}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                  {(!anime.tags || anime.tags.length === 0) && (
+                    <p className="text-xs text-satori-muted italic">No DNA markers available.</p>
+                  )}
+                </div>
+              </div>
             </motion.div>
           </div>
 
@@ -278,7 +301,7 @@ const Details = () => {
                       <stat.icon size={14} className={stat.color} />
                       <span className="text-[10px] font-black text-satori-muted uppercase tracking-widest">{stat.label}</span>
                     </div>
-                    <p className="text-xl font-black">{stat.value || '?'}</p>
+                    <p className="text-lg md:text-xl font-black leading-tight">{stat.value || '?'}</p>
                   </div>
                 ))}
               </div>
@@ -301,19 +324,24 @@ const Details = () => {
                     </div>
                  </div>
 
-                 <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/[0.05]">
+                 <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/[0.05] flex flex-col">
                     <h3 className="text-xs font-black text-satori-accent uppercase tracking-widest mb-4 flex items-center gap-2">
-                      <Zap size={14} /> DNA Markers
+                      <Users size={14} /> Key Staff
                     </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {anime.tags?.slice(0, 8).map(tag => (
-                        <div key={tag.name} className="px-3 py-1.5 bg-white/[0.03] border border-white/[0.08] rounded-lg">
-                          <p className="text-[9px] font-bold text-white uppercase tracking-wider">{tag.name}</p>
-                          <div className="w-full h-1 bg-white/5 rounded-full mt-1 overflow-hidden">
-                            <div className="h-full bg-white/40" style={{ width: `${tag.rank}%` }} />
+                    <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[160px]">
+                      <div className="space-y-3">
+                        {anime.staff?.slice(0, 10).map((member, idx) => (
+                          <div key={idx} className="flex justify-between items-center border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                            <p className="text-xs font-bold text-white truncate pr-2">{member.name}</p>
+                            <p className="text-[9px] text-satori-muted uppercase tracking-wider shrink-0 max-w-[50%] truncate text-right">
+                              {member.role?.split(' ')[0]} {/* Abbreviate long roles if needed */}
+                            </p>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                        {(!anime.staff || anime.staff.length === 0) && (
+                          <p className="text-xs text-satori-muted italic">No staff data.</p>
+                        )}
+                      </div>
                     </div>
                  </div>
               </div>
@@ -326,6 +354,42 @@ const Details = () => {
                 className="text-base text-satori-muted leading-relaxed font-medium space-y-4"
                 dangerouslySetInnerHTML={{ __html: anime.description }}
               />
+
+              {anime.relations && anime.relations.length > 0 && (
+                <div className="mt-12">
+                  <h2 className="text-xl font-black tracking-tight mb-4 flex items-center gap-3">
+                    <div className="w-1 h-5 bg-satori-accent rounded-full" />
+                    Relations
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {anime.relations.map((rel, idx) => (
+                      <Link 
+                        key={idx}
+                        to={`/anime/${rel.node.id}`}
+                        className="bg-white/[0.02] border border-white/[0.05] p-4 rounded-2xl hover:bg-white/[0.05] hover:border-white/20 transition-all group flex flex-col justify-between"
+                      >
+                        <div>
+                          <p className="text-[10px] text-satori-accent font-black uppercase tracking-widest mb-1">
+                            {rel.relationType?.replace(/_/g, ' ')}
+                          </p>
+                          <p className="text-sm font-bold text-white group-hover:text-satori-accent transition-colors line-clamp-2">
+                            {rel.node.title?.english || rel.node.title?.romaji || 'Unknown Title'}
+                          </p>
+                        </div>
+                        <div className="mt-3 flex items-center gap-2 text-[10px] text-satori-muted font-bold uppercase tracking-widest">
+                          <span>{rel.node.format || 'UNKNOWN'}</span>
+                          {rel.node.status && (
+                            <>
+                              <span className="w-1 h-1 rounded-full bg-white/20" />
+                              <span>{rel.node.status.replace(/_/g, ' ')}</span>
+                            </>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </motion.div>
           </div>
         </div>

@@ -6,6 +6,7 @@ const userRoutes = require("./routes/userRoutes");
 const customListRoutes = require("./routes/customListRoutes");
 const recommendationRoutes = require("./routes/recommendationRoutes");
 const dnaRoutes = require("./routes/dnaRoutes");
+const trendRoutes = require("./routes/trendRoutes");
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/lists", customListRoutes);
 app.use("/api/recommend", recommendationRoutes);
 app.use("/api/dna", dnaRoutes);
+app.use("/api/trend", trendRoutes);
 
 // 404 Handler
 app.use((req, res) => {

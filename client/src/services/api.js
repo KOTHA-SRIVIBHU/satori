@@ -33,6 +33,16 @@ export const getAnimeDNA = async () => {
   return data;
 };
 
+export const getSeasonalTrends = async () => {
+  const { data } = await api.get('/trend/seasonal');
+  return data;
+};
+
+export const predictHypothetical = async (payload) => {
+  const { data } = await api.post('/trend/hypothetical', payload);
+  return data;
+};
+
 export const getAnalytics = async () => {
   const { data } = await api.get('/anime/analytics');
   return data;
