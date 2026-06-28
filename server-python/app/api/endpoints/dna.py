@@ -3,17 +3,34 @@ from app.db.mongodb import get_database
 from app.services.dna_finder import DNAFinderService
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel
+from typing import List, Optional
 
 router = APIRouter()
 
 class DNARequest(BaseModel):
     user_id: str
 
+class TagScore(BaseModel):
+    tag: str
+    strength: float
+
+class GenreScore(BaseModel):
+    genre: str
+    strength: float
+
+class SecondaryPersona(BaseModel):
+    name: str
+    description: str
+
 class DNAResponse(BaseModel):
     cluster_id: int
     persona: str
     description: str
     total_watched: int
+    top_tags: List[TagScore] = []
+    top_genres: List[GenreScore] = []
+    genre_breakdown: List[GenreScore] = []
+    secondary_persona: Optional[SecondaryPersona] = None
 
 @router.post("/analyze", response_model=DNAResponse)
 async def analyze_dna(

@@ -128,7 +128,7 @@ const MyList = () => {
           {loading ? (
             <div className="text-white">Loading your journey...</div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div key={filter} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredList.map((item, index) => (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -258,7 +258,7 @@ const MyList = () => {
         )}
       </AnimatePresence>
 
-      {!loading && filteredList.length === 0 && (
+      {!loading && activeTab === 'SYNC' && filteredList.length === 0 && (
         <div className="text-center py-20 text-satori-muted">
           No anime found in this category.
         </div>

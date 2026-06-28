@@ -3,7 +3,7 @@ from app.db.mongodb import get_database
 from app.services.recommender import RecommenderService
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel
-from typing import List
+from typing import List, Any
 
 router = APIRouter()
 
@@ -13,7 +13,7 @@ class RecommendationRequest(BaseModel):
 
 class RecommendationResponse(BaseModel):
     anime_id: int
-    title: str
+    title: Any
     similarity_score: float
     xai_reason: str
 

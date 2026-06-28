@@ -11,22 +11,24 @@ Unlike traditional anime tracking websites that rely purely on basic user rating
 
 ---
 
-## 🚀 Core Modules & Features
+## 🚀 Core Modules & Technical Scale
 
 ### 1. 🌌 The Anime Galaxy (Spatial UI)
-Explore over 1,000+ anime in an interactive 2D star map. Using **UMAP dimensionality reduction**, Satori clusters similar anime together based on 71 unique data dimensions (genres, tags, staff, demographics). 
-- **Interactive Neighborhoods:** Click any star to zoom into a specific sub-genre neighborhood and instantly understand its thematic neighbors.
-- **Smart Highlighting:** Search for an anime and see its exact coordinates in the universe.
+Explore an interactive **4,000 × 4,000 px** 2D star map of the anime universe. 
+- **UMAP Dimensionality Reduction:** Satori clusters similar anime together by projecting **384-dimensional feature vectors** down to 2D coordinates.
+- **Deep Feature Engineering:** Vectors are built from **382 unique neural tags** plus 2 macro metrics (Score and Popularity).
+- **Squared Weighting:** Tags are mathematically weighted using a squared penalty `(rank / 100)²` to heavily emphasize an anime's defining characteristics over minor tropes.
 
 ### 2. 🧠 GenAI Insight Engine (RAG Pipeline)
-Chat directly with Satori, powered by the lightning-fast **Llama 3 (70B) via Groq**.
-- **Hyper-Personalized Context:** Satori seamlessly and privately injects your entire Watch History, Anime DNA, and Custom Collections into the AI's system prompt before you even say hello.
-- **Explainable Recommendations (XAI):** Don't just get a title—understand *exactly why* an anime was picked based on your unique watch patterns.
-- **Sliding Memory Window:** The engine retains dynamic context during conversations for deep, multi-turn follow-up interactions without blowing up token limits.
+Chat directly with Satori, powered by the lightning-fast **Llama 3.3 (70B) via Groq**.
+- **Hyper-Personalized Context:** Satori seamlessly and privately injects your **20 most recent watch entries**, Anime DNA, and Custom Collections into the AI's system prompt before you even say hello.
+- **Explainable Recommendations (XAI):** Utilizing `scikit-learn`'s Cosine Similarity against a candidate pool of **2,000 anime**, the engine calculates the exact mathematical overlap of your taste profile to explain *exactly why* a show was recommended.
+- **Sliding Memory Window:** The engine retains dynamic context during conversations (sliding 6-message window) for deep, multi-turn interactions without blowing up token limits.
+- **K-Means Clustering:** Assigns users to one of **8 distinct K-Means Persona Clusters** based on their long-term viewing habits.
 
 ### 3. 📈 Trend Predictor (Most Anticipated)
 A real-time analytics module that evaluates upcoming seasonal anime before they air.
-- **Predictive Scoring:** Satori scrapes hype metadata and uses prequel trajectories and studio DNA to predict the critical success of an upcoming anime.
+- **Custom Heuristic Algorithm:** Engineered a proprietary heuristic logic pipeline in Node.js that scrapes relational datasets via GraphQL. It mathematically scores an upcoming anime's potential for critical success based on the historical trajectory of its prequels and the rating of its source material (Manga/Light Novels).
 
 ### 4. 📊 Global Analytics (Macro Intelligence)
 A data science dashboard visualizing industry-wide trends over the last two decades.
@@ -46,7 +48,7 @@ Satori uses a powerful **Microservice Architecture** to combine the lightning-fa
 
 - **Frontend Gateway:** React (Vite) + Tailwind CSS + Framer Motion. 
 - **Data & Auth (server-node):** Node.js & Express. Handles JWT Authentication, Database caching, list management, and proxies massive AniList API synchronization.
-- **ML & AI Brain (server-python):** Python FastAPI service. Handles Feature Engineering (71D vectors), Cosine Similarity, UMAP projections, and the LangChain/RAG pipeline logic.
+- **ML & AI Brain (server-python):** Python FastAPI service. Handles Feature Engineering (384D vectors), Cosine Similarity, UMAP projections, Random Forest regression, and the RAG pipeline logic.
 - **Database:** MongoDB Atlas (Global Cloud Cluster).
 
 ---
@@ -55,7 +57,7 @@ Satori uses a powerful **Microservice Architecture** to combine the lightning-fa
 
 | Layer | Technology |
 | :--- | :--- |
-| **Backend (ML & RAG)** | Python, FastAPI, Scikit-Learn, UMAP, Groq (Llama 3) |
+| **Backend (ML & RAG)** | Python, FastAPI, Scikit-Learn (UMAP, KMeans), Groq (Llama 3.3 70B) |
 | **Backend (API)** | Node.js, Express, Mongoose, Axios |
 | **Frontend** | React 19, Recharts, Framer Motion, Lucide Icons, React-Markdown |
 | **Styling** | Tailwind CSS (Cinematic Dark / Glassmorphism Theme) |
