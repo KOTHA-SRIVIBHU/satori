@@ -23,7 +23,8 @@ const GENRE_COLORS = {
   Thriller: '#576574',
 };
 
-const MAP_SIZE = 4000;
+const MAP_WIDTH = 6000;
+const MAP_HEIGHT = 3500;
 
 export default function Galaxy() {
   const [allData, setAllData] = useState([]);
@@ -50,12 +51,20 @@ export default function Galaxy() {
             // Add a small deterministic jitter so identical coordinates form a small cluster instead of perfectly overlapping
             const jitterX = Math.sin(a.id * 12.345) * 0.6; 
             const jitterY = Math.cos(a.id * 67.890) * 0.6;
+            let titleStr = '';
+            if (a.title) {
+              if (typeof a.title === 'object') {
+                titleStr = a.title.english || a.title.romaji || '';
+              } else {
+                titleStr = String(a.title);
+              }
+            }
             
             return {
               ...a,
-              x: a.x + jitterX,
-              y: a.y + jitterY,
-              searchTitle: (typeof a.title === 'object' ? (a.title.english || a.title.romaji) : a.title).toLowerCase()
+              x: a.y + jitterX, // Swapped X and Y to rotate projection 90 degrees horizontally
+              y: a.x + jitterY,
+              searchTitle: titleStr.toLowerCase()
             };
           });
           setAllData(data);
@@ -75,8 +84,8 @@ export default function Galaxy() {
       const avgX = allData.reduce((sum, a) => sum + a.x, 0) / allData.length;
       const avgY = allData.reduce((sum, a) => sum + a.y, 0) / allData.length;
       
-      const targetX = (avgX / 100) * MAP_SIZE;
-      const targetY = (avgY / 100) * MAP_SIZE;
+      const targetX = (avgX / 100) * MAP_WIDTH;
+      const targetY = (avgY / 100) * MAP_HEIGHT;
       
       containerRef.current.scrollTo({
         left: targetX - containerRef.current.clientWidth / 2,
@@ -101,8 +110,8 @@ export default function Galaxy() {
   const centerOnAnime = (anime) => {
     if (!anime || !containerRef.current) return;
     setSelectedAnime(anime);
-    const targetX = (anime.x / 100) * MAP_SIZE;
-    const targetY = (anime.y / 100) * MAP_SIZE;
+    const targetX = (anime.x / 100) * MAP_WIDTH;
+    const targetY = (anime.y / 100) * MAP_HEIGHT;
     containerRef.current.scrollTo({
       left: targetX - containerRef.current.clientWidth / 2,
       top: targetY - containerRef.current.clientHeight / 2,
@@ -131,8 +140,8 @@ export default function Galaxy() {
     if (isDragging.current && (Math.abs(e.pageX - startPos.current.x) > 5)) return;
     
     setSelectedAnime(anime);
-    const targetX = (anime.x / 100) * MAP_SIZE;
-    const targetY = (anime.y / 100) * MAP_SIZE;
+    const targetX = (anime.x / 100) * MAP_WIDTH;
+    const targetY = (anime.y / 100) * MAP_HEIGHT;
     containerRef.current.scrollTo({
       left: targetX - containerRef.current.clientWidth / 2,
       top: targetY - containerRef.current.clientHeight / 2,
@@ -254,7 +263,7 @@ export default function Galaxy() {
         
         <div 
           className="relative" 
-          style={{ width: `${MAP_SIZE}px`, height: `${MAP_SIZE}px` }}
+          style={{ width: `${MAP_WIDTH}px`, height: `${MAP_HEIGHT}px` }}
         >
           {/* Constellation Grid Pattern */}
           <div 
@@ -304,8 +313,8 @@ export default function Galaxy() {
                 onClick={(e) => handlePointClick(e, anime)}
                 className="absolute -translate-x-1/2 -translate-y-1/2"
                 style={{
-                  left: `${(anime.x / 100) * MAP_SIZE}px`,
-                  top: `${(anime.y / 100) * MAP_SIZE}px`,
+                  left: `${(anime.x / 100) * MAP_WIDTH}px`,
+                  top: `${(anime.y / 100) * MAP_HEIGHT}px`,
                   zIndex,
                   width: size * 2,
                   height: size * 2,
@@ -337,7 +346,7 @@ export default function Galaxy() {
                       className="absolute top-full mt-3 px-4 py-2 bg-[#050507]/95 backdrop-blur-xl border border-white/10 rounded-xl whitespace-nowrap pointer-events-none shadow-2xl z-50 flex flex-col items-center"
                     >
                       <p className="text-sm font-black text-white">
-                        {typeof anime.title === 'object' ? (anime.title.english || anime.title.romaji) : anime.title}
+                        {anime.title ? (typeof anime.title === 'object' ? (anime.title.english || anime.title.romaji) : anime.title) : 'Unknown Title'}
                       </p>
                       <p className="text-[10px] font-bold mt-1 tracking-widest" style={{ color }}>
                         {anime.genres?.[0]}
@@ -387,7 +396,7 @@ export default function Galaxy() {
               </div>
 
               <h2 className="text-4xl font-black leading-tight mb-3">
-                {typeof selectedAnime.title === 'object' ? (selectedAnime.title.english || selectedAnime.title.romaji) : selectedAnime.title}
+                {selectedAnime.title ? (typeof selectedAnime.title === 'object' ? (selectedAnime.title.english || selectedAnime.title.romaji) : selectedAnime.title) : 'Unknown Title'}
               </h2>
               <p className="text-xs text-white/40 font-black uppercase tracking-widest mb-10">Neural Node ID // {selectedAnime.id}</p>
 

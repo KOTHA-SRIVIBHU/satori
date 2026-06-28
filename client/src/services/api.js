@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // Our Node.js Gateway URL
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api', // Support production deployments
 });
 
 // Add a request interceptor to include the JWT token
@@ -35,11 +35,6 @@ export const getAnimeDNA = async () => {
 
 export const getSeasonalTrends = async () => {
   const { data } = await api.get('/trend/seasonal');
-  return data;
-};
-
-export const predictHypothetical = async (payload) => {
-  const { data } = await api.post('/trend/hypothetical', payload);
   return data;
 };
 

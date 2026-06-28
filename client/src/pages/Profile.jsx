@@ -167,18 +167,73 @@ const Profile = () => {
             </p>
 
             {dnaResult ? (
-              <div className="bg-white/[0.03] border border-[#FF2A55]/20 p-5 rounded-xl shadow-lg shadow-[#FF2A55]/5">
-                <div className="inline-block px-2 py-1 bg-[#FF2A55]/10 text-[#FF2A55] text-[9px] font-black uppercase tracking-widest rounded mb-3">
-                  Cluster #{dnaResult.cluster_id}
+              <div className="space-y-4">
+                <div className="bg-white/[0.03] border border-[#FF2A55]/20 p-5 rounded-xl shadow-lg shadow-[#FF2A55]/5">
+                  <div className="inline-block px-2 py-1 bg-[#FF2A55]/10 text-[#FF2A55] text-[9px] font-black uppercase tracking-widest rounded mb-3">
+                    Primary Archetype
+                  </div>
+                  <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60 mb-2 leading-tight">
+                    {dnaResult.persona}
+                  </h3>
+                  <p className="text-sm font-medium text-white/70 leading-relaxed mb-3">
+                    "{dnaResult.description}"
+                  </p>
+
+                  {dnaResult.secondary_persona && (
+                    <div className="bg-white/[0.03] border border-white/10 p-3 rounded-lg mt-3">
+                      <span className="text-[9px] font-black text-satori-accent uppercase tracking-widest">Secondary Archetype</span>
+                      <p className="text-sm font-bold text-white/80 mt-1">{dnaResult.secondary_persona.name}</p>
+                      <p className="text-xs text-white/50 mt-0.5">{dnaResult.secondary_persona.description}</p>
+                    </div>
+                  )}
                 </div>
-                <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60 mb-2 leading-tight">
-                  {dnaResult.persona}
-                </h3>
-                <p className="text-sm font-medium text-white/70 leading-relaxed mb-4">
-                  "{dnaResult.description}"
-                </p>
-                <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest border-t border-white/5 pt-3">
-                  Analyzed {dnaResult.total_watched} Neural Nodes
+
+                {/* Genre Breakdown */}
+                {dnaResult.genre_breakdown && dnaResult.genre_breakdown.length > 0 && (
+                  <div className="bg-white/[0.03] border border-white/5 p-5 rounded-xl">
+                    <h4 className="text-[10px] font-black text-satori-muted uppercase tracking-widest mb-3">Genre Affinity</h4>
+                    <div className="space-y-2">
+                      {dnaResult.genre_breakdown.slice(0, 6).map((g, i) => (
+                        <div key={g.genre} className="flex items-center gap-3">
+                          <span className="text-xs text-white/70 w-24 truncate">{g.genre}</span>
+                          <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-[#FF2A55] to-[#B82E8A] transition-all duration-700"
+                              style={{ width: `${Math.min(g.strength, 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-white/40 font-mono w-10 text-right">{g.strength}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Top DNA Tags */}
+                {dnaResult.top_tags && dnaResult.top_tags.length > 0 && (
+                  <div className="bg-white/[0.03] border border-white/5 p-5 rounded-xl">
+                    <h4 className="text-[10px] font-black text-satori-muted uppercase tracking-widest mb-3">DNA Markers</h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {dnaResult.top_tags.slice(0, 12).map((t) => (
+                        <span key={t.tag} className="px-2 py-1 bg-white/5 border border-white/10 rounded-md text-[10px] text-white/70 font-medium">
+                          {t.tag} <span className="text-[#FF2A55] ml-0.5">{t.strength}%</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                  <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                    Analyzed {dnaResult.total_watched} Neural Nodes
+                  </div>
+                  <button
+                    onClick={handleAnalyzeDNA}
+                    disabled={dnaLoading}
+                    className="text-[10px] font-bold text-[#FF2A55] hover:text-white uppercase tracking-widest transition-colors flex items-center gap-1"
+                  >
+                    {dnaLoading ? <RefreshCw className="animate-spin" size={12} /> : "Re-Analyze"}
+                  </button>
                 </div>
               </div>
             ) : (
